@@ -95,7 +95,7 @@ public class ClientMain {
     }
 
     public static void printMenu(Logger console) {
-        console.append("==== Bem Vindo ao TYPE RACE ====\n");
+        console.appendBold("==== Bem Vindo ao TYPE RACE ====\n");
         console.append("1 - Começar o Jogo\n");
         console.append("2 - Definir nome do servidor\n");
         console.append("3 - Definir nome do usuário\n");
@@ -104,15 +104,17 @@ public class ClientMain {
         console.println();
 
         if (server.isBlank()) {
-            console.appendErr("Servidor não definido\n");
+            console.appendErr("Servidor: ");
+            console.append(" não definido\n");
         } else {
-            console.appendGood("Server: ");
+            console.appendGood("Servidor: ");
             console.append(server);
             console.append("\n");
         }
 
         if (clientId.isBlank()) {
-            console.appendErr("ID não definido\n");
+            console.appendErr("Seu ID: ");
+            console.append(" não definido\n");
         } else {
             console.appendGood("Seu ID: ");
             console.append(clientId);

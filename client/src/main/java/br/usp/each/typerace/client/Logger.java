@@ -6,6 +6,8 @@ public class Logger {
 
     private String ANSI_RED;
     private String ANSI_GREEN;
+    private String ANSI_UNDERLINE;
+    private String ANSI_BOLD;
     private String ANSI_RESET;
     private String ANSI_CLEAR;
 
@@ -14,10 +16,12 @@ public class Logger {
     Logger (Boolean supportsANSI) {
         this.supportsANSI = supportsANSI;
 
-        this.ANSI_RED    = "\u001b[31m";
-        this.ANSI_GREEN  = "\u001b[32m";
-        this.ANSI_RESET  = "\u001b[0m";
-        this.ANSI_CLEAR  = "\u001b[H\u001b[2J";
+        this.ANSI_RED        = "\u001b[31m";
+        this.ANSI_GREEN      = "\u001b[32m";
+        this.ANSI_RESET      = "\u001b[0m";
+        this.ANSI_UNDERLINE  = "\u001b[4m";
+        this.ANSI_BOLD       = "\u001b[1m";
+        this.ANSI_CLEAR      = "\u001b[H\u001b[2J";
 
         stringToPrint = new StringBuilder();
     }
@@ -57,6 +61,18 @@ public class Logger {
 
     public void appendGood(String text) {
         if (this.supportsANSI) stringToPrint.append(this.ANSI_GREEN);
+        stringToPrint.append(text);
+        this.appendReset();
+    }
+
+    public void appendUnderline(String text) {
+        if (this.supportsANSI) stringToPrint.append(this.ANSI_UNDERLINE);
+        stringToPrint.append(text);
+        this.appendReset();
+    }
+
+    public void appendBold(String text) {
+        if (this.supportsANSI) stringToPrint.append(this.ANSI_BOLD);
         stringToPrint.append(text);
         this.appendReset();
     }
