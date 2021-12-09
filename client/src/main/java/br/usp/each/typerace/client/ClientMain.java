@@ -44,7 +44,8 @@ public class ClientMain {
             switch (choice) {
                 case ENTER_GAME:
                     if (server.isBlank() || clientId.isBlank()) {
-                        console.printErr("Servidor ou ID não definido");
+                        console.appendErr("Servidor ou ID não definido");
+                        console.println();
                         break;
                     }
 
@@ -59,11 +60,11 @@ public class ClientMain {
                     break;
 
                 case SET_SERVER:
-                    server = getUserInput(console, entrada, "Defina o seu servidor (Padrão: ws://localhost:8080):");
+                    server = getUserInput(console, entrada, "Defina o seu servidor ", "(Padrão: ws://localhost:8080):");
                     break;
 
                 case SET_USER:
-                    clientId = getUserInput(console, entrada, "Defina seu ID (Padrão: clientId):");
+                    clientId = getUserInput(console, entrada, "Defina seu ID ", "(Padrão: clientId):");
                     break;
 
                 case COLORED_OUTPUT:
@@ -82,8 +83,9 @@ public class ClientMain {
 
     public static Logger createLogger(Scanner entrada) {
         Logger console = new Logger(true);
-        console.printErr("\n\tFRASE EM VERMELHO");
-        System.out.println("A frase acima está na cor vermelha? (S/N)");
+        console.appendErr("\n\tFRASE EM VERMELHO\n");
+        console.append("A frase acima está na cor vermelha? (S/N)");
+        console.println();
 
         String userInput = entrada.nextLine().toLowerCase();
         if (userInput.charAt(0) != 's') console.setSupportsANSI(false);
@@ -93,30 +95,39 @@ public class ClientMain {
     }
 
     public static void printMenu(Logger console) {
-        String gameMenu = "==== Bem Vindo ao TYPE RACE ====\n" +
-                "1 - Começar o Jogo\n" +
-                "2 - Definir nome do servidor\n" +
-                "3 - Definir nome do usuário\n" +
-                "4 - Colocar/Remover cor do terminal\n" +
-                "0 - Sair do jogo\n";
+        console.append("==== Bem Vindo ao TYPE RACE ====\n");
+        console.append("1 - Começar o Jogo\n");
+        console.append("2 - Definir nome do servidor\n");
+        console.append("3 - Definir nome do usuário\n");
+        console.append("4 - Colocar/Remover cor do terminal\n");
+        console.append("0 - Sair do jogo\n");
+        console.println();
 
-        System.out.println(gameMenu);
+        if (server.isBlank()) {
+            console.appendErr("Servidor não definido\n");
+        } else {
+            console.appendGood("Server: ");
+            console.append(server);
+            console.append("\n");
+        }
 
-        if (server.isBlank()) console.printErr("Servidor não definido");
-        else console.printGood("Server: " + server);
-
-        if (clientId.isBlank()) console.printErr("ID não definido");
-        else console.printGood("Seu ID: " + clientId);
-
-        console.emptyLine();
-
-        System.out.print("Sua escolha: ");
+        if (clientId.isBlank()) {
+            console.appendErr("ID não definido\n");
+        } else {
+            console.appendGood("Seu ID: ");
+            console.append(clientId);
+            console.append("\n");
+        }
+        console.append("\nSua escolha: ");
+        console.print();
     }
 
-    public static String getUserInput(Logger console, Scanner entrada, String text) {
+    public static String getUserInput(Logger console, Scanner entrada, String text, String example) {
         String userInput = "";
         while (userInput.isBlank()) {
-            System.out.println(text);
+            console.append(text);
+            console.appendGood(example);
+            console.println();
             userInput = entrada.nextLine();
             console.clear();
         }
