@@ -12,12 +12,17 @@ Repositório para o EP2 de Redes de Computadores, EACH-USP - 2021/2
 * Gradle (incluso no repositório, não é necessário instalá-lo)
 
 ### Rodando
-Para rodar o servidor
+Para rodar o servidor:
 ```sh
 ./gradlew server:run
 ```
 
-Para rodar um cliente
+Para rodar um cliente:
 ```sh
 ./gradlew client:run
+```
+
+Para ter uma melhor experiência ao jogar o jogo recomendamos rodar:
+```sh
+./gradlew client:run --console=plain
 ```
