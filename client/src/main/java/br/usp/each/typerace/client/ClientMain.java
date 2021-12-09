@@ -74,8 +74,8 @@ public class ClientMain {
                     break;
 
             }
-            System.out.print("\033[H\033[2J");
 
+            console.clear();
         }
 
     }
