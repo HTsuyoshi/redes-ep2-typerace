@@ -2,69 +2,82 @@ package br.usp.each.typerace.client;
 
 import org.java_websocket.client.WebSocketClient;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.Map;
 import java.util.Scanner;
+
+import static br.usp.each.typerace.client.Choice.*;
+
+/*
+ * @class ClientMenu pequena interface para o usuario se conectar com o server
+ *
+ * @atrr console logger para uma UI mais bonita :D
+ * @atrr client websocket usada para fazer a conexao
+ *
+ */
 
 public class ClientMain {
 
-    private WebSocketClient client;
-    private static String server = "",
-            clientId = "";
+    public static Logger console;
+
+    private static WebSocketClient client;
 
     public ClientMain(WebSocketClient client) {
         this.client = client;
     }
 
-    public ClientMain(WebSocketClient client, String server, String clientId) {
-        this.client = client;
-        this.server = server;
-        this.clientId = clientId;
-    }
+    /*
+     * A funcao init comeca uma conexao com o servidor
+     *
+     * @param clientId ID escolhido pelo usuario
+     *
+     */
 
-    public void init() {
+    public void init(String clientId) {
         System.out.println("Iniciando cliente: " + clientId);
         client.addHeader("Id do cliente", clientId);
         client.connect();
     }
 
-    public static void main(String[] args) throws IOException {
+    /*
+     * A funcao main serve para executar o menu do jogo
+     * permitindo que o jogador consiga escolher seu servidor,
+     * colocar seu nome, conectar com o server e habilidar ou
+     * desabilitar cor no terminal.
+     *
+     */
 
-        Scanner entrada = new Scanner(System.in);
-        Logger console;
+    public static void main(String[] args) throws URISyntaxException {
+        console = new Logger(true);
+        Scanner scan = new Scanner(System.in);
+
         Choice choice = Choice.NONE;
+        String clientId = "",
+                server = "";
 
-        console = createLogger(entrada);
-
-        while (choice != Choice.QUIT_GAME) {
-            printMenu(console);
-            choice = getUserChoice(entrada);
+        setLogger(scan);
+        while (choice.equals(QUIT_GAME)) {
+            printMenu(choice, server, clientId);
+            choice = getUserChoice(scan);
 
             switch (choice) {
                 case ENTER_GAME:
                     if (server.isBlank() || clientId.isBlank()) {
-                        console.appendErr("Servidor ou ID não definido");
-                        console.println();
                         break;
                     }
-
-                    try {
-                        WebSocketClient client = new Client(new URI(server));
-                        ClientMain main = new ClientMain(client);
-                        main.init();
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-
+                    console.clear();
+                    startGame(scan, server, clientId);
                     break;
 
                 case SET_SERVER:
-                    server = getUserInput(console, entrada, "Defina o seu servidor ", "(Padrão: ws://localhost:8080):");
+                    server = getUserInput(scan, "Defina o seu servidor ", "ws://localhost:8080");
                     break;
 
                 case SET_USER:
-                    clientId = getUserInput(console, entrada, "Defina seu ID ", "(Padrão: clientId):");
+                    clientId = getUserInput(scan, "Defina seu ID ", "clientId");
                     break;
 
                 case COLORED_OUTPUT:
@@ -72,95 +85,180 @@ public class ClientMain {
                     break;
 
                 case QUIT_GAME:
-                    break;
+                    return;
 
+                default:
+                    break;
             }
 
             console.clear();
         }
 
+        scan.close();
     }
 
-    public static Logger createLogger(Scanner entrada) {
-        Logger console = new Logger(true);
-        console.appendErr("\n\tFRASE EM VERMELHO\n");
+    /*
+     * A funcao startGame cria uma conexao com o server.
+     *
+     * O ID do usuario e a primeira mensagem enviada
+     * e enquanto a conxexao estiver aberta a funcao vai
+     * receber a entrada do usuario e enviar para o server.
+     *
+     * @param server server usado para conexao
+     * @param clientId Id usado na conexao
+     *
+     */
+
+    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException {
+        client = new Client(new URI(server), console);
+        ClientMain main = new ClientMain(client);
+        main.init(clientId);
+
+        client.send(clientId);
+        String userInput;
+        while (!client.isClosed()) {
+            userInput = scan.nextLine();
+            if (!client.isClosed()) client.send(userInput);
+        }
+    }
+
+    /*
+     * A funcao SetLogger serve para o usuario verificar
+     * o terminal dele tem suporte para caracteres
+     * de escape ANSI
+     *
+     */
+
+    public static void setLogger(Scanner scan) {
+        console.appendEffect("\n\tFRASE EM VERMELHO\n", Color.RED, Mode.UNDERLINE);
         console.append("A frase acima está na cor vermelha? (S/N)");
         console.println();
 
-        String userInput = entrada.nextLine().toLowerCase();
+        String userInput = scan.nextLine().toLowerCase();
         if (userInput.charAt(0) != 's') console.setSupportsANSI(false);
 
         console.clear();
-        return console;
     }
 
-    public static void printMenu(Logger console) {
-        console.appendBold("==== Bem Vindo ao TYPE RACE ====\n");
+    /*
+     * Imprime a interface princiapl do usuario
+     *
+     * @param server server que o usuario vai se conectar
+     * @param clientId Id que o usuario vai utilizar
+     * @param userChoice mostrar erro
+     *
+     */
+
+    public static void printMenu(Choice userChoice,String server, String clientId) {
+        console.appendEffect("==== Bem Vindo ao TYPE RACE ====\n", Color.NONE, Mode.BOLD);
         console.append("1 - Começar o Jogo\n");
         console.append("2 - Definir nome do servidor\n");
         console.append("3 - Definir nome do usuário\n");
         console.append("4 - Colocar/Remover cor do terminal\n");
-        console.append("0 - Sair do jogo\n");
-        console.println();
+        console.append("5 - Sair do jogo\n\n");
 
         if (server.isBlank()) {
-            console.appendErr("Servidor: ");
+            console.appendEffect("Servidor: ", Color.RED, Mode.NONE);
             console.append(" não definido\n");
         } else {
-            console.appendGood("Servidor: ");
+            console.appendEffect("Servidor: ", Color.GREEN, Mode.NONE);
             console.append(server);
             console.append("\n");
         }
 
         if (clientId.isBlank()) {
-            console.appendErr("Seu ID: ");
+            console.appendEffect("Seu ID: ", Color.RED, Mode.NONE);
             console.append(" não definido\n");
         } else {
-            console.appendGood("Seu ID: ");
+            console.appendEffect("Seu ID: ", Color.GREEN, Mode.NONE);
             console.append(clientId);
             console.append("\n");
         }
+
+        if (userChoice.equals(ERROR)) {
+            console.appendEffect("\nSua escolha não é válida.", Color.RED, Mode.UNDERLINE);
+            console.print();
+        }
+
         console.append("\nSua escolha: ");
         console.print();
     }
 
-    public static String getUserInput(Logger console, Scanner entrada, String text, String example) {
-        String userInput = "";
-        while (userInput.isBlank()) {
-            console.append(text);
-            console.appendGood(example);
-            console.println();
-            userInput = entrada.nextLine();
-            console.clear();
-        }
-        return userInput;
+    /*
+     * Usado para receber o nome do server ou nome
+     * do usuario. E caso o usuario nao escreva nada
+     * o valor padrao e utilizado
+     *
+     * @param defaultString servidor/nome padrao
+     * @param text servidor/nome que o usuario escolheu
+     d
+     */
+
+    public static String getUserInput(Scanner scan, String text, String defaultString) {
+        console.clear();
+        console.append(text);
+        console.appendEffect(String.format("(Padrão: %s)", defaultString), Color.GREEN, Mode.NONE);
+        console.println();
+        String userInput = scan.nextLine();
+        return userInput.isBlank() ? defaultString : userInput;
     }
 
-    public static Choice getUserChoice(Scanner entrada) {
-        int choice = entrada.nextInt();
-        switch (choice) {
-            case 0:
-                return Choice.QUIT_GAME;
-            case 1:
-                return Choice.ENTER_GAME;
-            case 2:
-                return Choice.SET_SERVER;
-            case 3:
-                return Choice.SET_USER;
-            case 4:
-                return Choice.COLORED_OUTPUT;
-            default:
-                return Choice.NONE;
+    /*
+     * E usado para receber a escolha do usuario
+     * no menu principal
+     *
+     */
+
+    public static Choice getUserChoice(Scanner scan) {
+
+        int userInput;
+        try {
+            userInput = scan.nextInt();
+            scan.nextLine();
+        } catch (InputMismatchException exception) {
+            userInput = -1;
+            scan.next();
         }
+
+        return Choice.valueOf(userInput);
     }
 
 }
 
+/*
+ * Classes das escolhas que o usuario pode fazer
+ * para facilitar a leitura do codigo
+ *
+ */
+
 enum Choice {
-    NONE,
-    ENTER_GAME,
-    SET_USER,
-    SET_SERVER,
-    COLORED_OUTPUT,
-    QUIT_GAME
+    ERROR(-1),
+    NONE(0),
+    ENTER_GAME(1),
+    SET_USER(2),
+    SET_SERVER(3),
+    COLORED_OUTPUT(4),
+    QUIT_GAME(5);
+
+    private final int value;
+    private static Map map = new HashMap<>();
+
+    Choice(int value) {
+        this.value = value;
+    }
+
+    static {
+        for (Choice choice : Choice.values()) {
+            map.put(choice.value, choice);
+        }
+    }
+
+    public static Choice valueOf(int choice) {
+        return (Choice) map.get(choice);
+    }
+
+
+    public int getValue() {
+        return this.value;
+    }
 }
