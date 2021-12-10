@@ -1,6 +1,7 @@
 package br.usp.each.typerace.client;
 
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -8,6 +9,9 @@ import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+
+
 
 import static br.usp.each.typerace.client.Choice.*;
 
@@ -50,7 +54,7 @@ public class ClientMain {
      *
      */
 
-    public static void main(String[] args) throws URISyntaxException {
+    public static void main(String[] args) throws URISyntaxException, InterruptedException {
         console = new Logger(true);
         Scanner scan = new Scanner(System.in);
 
@@ -59,7 +63,7 @@ public class ClientMain {
                 server = "";
 
         setLogger(scan);
-        while (choice.equals(QUIT_GAME)) {
+        while (!choice.equals(QUIT_GAME)) {
             printMenu(choice, server, clientId);
             choice = getUserChoice(scan);
 
@@ -191,12 +195,20 @@ public class ClientMain {
      *
      */
 
-    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException {
+    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException, InterruptedException {
+        console.clear();
         client = new Client(new URI(server), console);
         ClientMain main = new ClientMain(client);
         main.init(clientId);
 
-        client.send(clientId);
+        try {
+            client.send(clientId);
+        } catch (WebsocketNotConnectedException ex) {
+            TimeUnit.SECONDS.sleep(3);
+            return;
+        }
+
+
         String userInput;
         while (!client.isClosed()) {
             userInput = scan.nextLine();
@@ -234,8 +246,8 @@ enum Choice {
     ERROR(-1),
     NONE(0),
     ENTER_GAME(1),
-    SET_USER(2),
-    SET_SERVER(3),
+    SET_SERVER(2),
+    SET_USER(3),
     COLORED_OUTPUT(4),
     QUIT_GAME(5);
 
@@ -254,10 +266,5 @@ enum Choice {
 
     public static Choice valueOf(int choice) {
         return (Choice) map.get(choice);
-    }
-
-
-    public int getValue() {
-        return this.value;
     }
 }
