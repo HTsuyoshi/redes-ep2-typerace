@@ -4,7 +4,10 @@ import org.java_websocket.server.WebSocketServer;
 
 import java.util.HashMap;
 
+
 public class ServerMain {
+
+    public static int port;
 
     private WebSocketServer server;
 
@@ -13,12 +16,32 @@ public class ServerMain {
     }
 
     public void init() {
-        System.out.println("Iniciando servidor...");
-        // TODO: Implementar
+        System.out.println("Iniciando servidor na porta " + port);
+        server.start();
     }
 
     public static void main(String[] args) {
-        WebSocketServer server = new Server(8080, new HashMap<>());
+
+        port = 8080;
+
+        if (args.length != 0) {
+            try {
+                port = Integer.parseInt(args[0]);
+                if (port < 1 || port > 65535) {
+                    System.err.println("A porta informada está fora do limite de portas");
+                    System.err.println("Usando a porta padrão...");
+                    port = 8080;
+                }
+            } catch (NumberFormatException exception) {
+                System.err.println("A porta informada não é valida");
+                exception.printStackTrace();
+            } catch (Exception exception) {
+                System.err.println("A porta informada não é valida");
+                exception.printStackTrace();
+            }
+        }
+
+        WebSocketServer server = new Server(port, new HashMap<>());
 
         ServerMain main = new ServerMain(server);
 
