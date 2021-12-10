@@ -98,31 +98,6 @@ public class ClientMain {
     }
 
     /*
-     * A funcao startGame cria uma conexao com o server.
-     *
-     * O ID do usuario e a primeira mensagem enviada
-     * e enquanto a conxexao estiver aberta a funcao vai
-     * receber a entrada do usuario e enviar para o server.
-     *
-     * @param server server usado para conexao
-     * @param clientId Id usado na conexao
-     *
-     */
-
-    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException {
-        client = new Client(new URI(server), console);
-        ClientMain main = new ClientMain(client);
-        main.init(clientId);
-
-        client.send(clientId);
-        String userInput;
-        while (!client.isClosed()) {
-            userInput = scan.nextLine();
-            if (!client.isClosed()) client.send(userInput);
-        }
-    }
-
-    /*
      * A funcao SetLogger serve para o usuario verificar
      * o terminal dele tem suporte para caracteres
      * de escape ANSI
@@ -141,7 +116,7 @@ public class ClientMain {
     }
 
     /*
-     * Imprime a interface princiapl do usuario
+     * Imprime a interface principal do usuario
      *
      * @param server server que o usuario vai se conectar
      * @param clientId Id que o usuario vai utilizar
@@ -185,25 +160,6 @@ public class ClientMain {
     }
 
     /*
-     * Usado para receber o nome do server ou nome
-     * do usuario. E caso o usuario nao escreva nada
-     * o valor padrao e utilizado
-     *
-     * @param defaultString servidor/nome padrao
-     * @param text servidor/nome que o usuario escolheu
-     d
-     */
-
-    public static String getUserInput(Scanner scan, String text, String defaultString) {
-        console.clear();
-        console.append(text);
-        console.appendEffect(String.format("(Padrão: %s)", defaultString), Color.GREEN, Mode.NONE);
-        console.println();
-        String userInput = scan.nextLine();
-        return userInput.isBlank() ? defaultString : userInput;
-    }
-
-    /*
      * E usado para receber a escolha do usuario
      * no menu principal
      *
@@ -223,6 +179,49 @@ public class ClientMain {
         return Choice.valueOf(userInput);
     }
 
+    /*
+     * A funcao startGame cria uma conexao com o server.
+     *
+     * O ID do usuario e a primeira mensagem enviada
+     * e enquanto a conxexao estiver aberta a funcao vai
+     * receber a entrada do usuario e enviar para o server.
+     *
+     * @param server server usado para conexao
+     * @param clientId Id usado na conexao
+     *
+     */
+
+    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException {
+        client = new Client(new URI(server), console);
+        ClientMain main = new ClientMain(client);
+        main.init(clientId);
+
+        client.send(clientId);
+        String userInput;
+        while (!client.isClosed()) {
+            userInput = scan.nextLine();
+            if (!client.isClosed()) client.send(userInput);
+        }
+    }
+
+    /*
+     * Usado para receber o nome do server ou nome
+     * do usuario. E caso o usuario nao escreva nada
+     * o valor padrao e utilizado
+     *
+     * @param defaultString servidor/nome padrao
+     * @param text servidor/nome que o usuario escolheu
+     d
+     */
+
+    public static String getUserInput(Scanner scan, String text, String defaultString) {
+        console.clear();
+        console.append(text);
+        console.appendEffect(String.format("(Padrão: %s)", defaultString), Color.GREEN, Mode.NONE);
+        console.println();
+        String userInput = scan.nextLine();
+        return userInput.isBlank() ? defaultString : userInput;
+    }
 }
 
 /*
