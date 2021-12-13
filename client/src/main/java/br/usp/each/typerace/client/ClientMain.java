@@ -1,7 +1,6 @@
 package br.usp.each.typerace.client;
 
 import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -9,18 +8,14 @@ import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
+import br.usp.each.typerace.client.Logger.*;
 
-
-import static br.usp.each.typerace.client.Choice.*;
-
-/*
+/**
  * @class ClientMenu pequena interface para o usuario se conectar com o server
  *
  * @atrr console logger para uma UI mais bonita :D
  * @atrr client websocket usada para fazer a conexao
- *
  */
 
 public class ClientMain {
@@ -33,37 +28,42 @@ public class ClientMain {
         this.client = client;
     }
 
-    /*
+    /**
      * A funcao init comeca uma conexao com o servidor
      *
      * @param clientId ID escolhido pelo usuario
-     *
      */
 
     public void init(String clientId) {
         System.out.println("Iniciando cliente: " + clientId);
-        client.addHeader("Id do cliente", clientId);
         client.connect();
     }
 
-    /*
+    public void sendMessage(String message) {
+        client.send(message);
+    }
+
+    public boolean isClosed() {
+        return client.isClosed();
+    }
+
+    /**
      * A funcao main serve para executar o menu do jogo
      * permitindo que o jogador consiga escolher seu servidor,
      * colocar seu nome, conectar com o server e habilidar ou
      * desabilitar cor no terminal.
-     *
      */
 
     public static void main(String[] args) throws URISyntaxException, InterruptedException {
         console = new Logger(true);
         Scanner scan = new Scanner(System.in);
-
         Choice choice = Choice.NONE;
+
         String clientId = "",
                 server = "";
 
         setLogger(scan);
-        while (!choice.equals(QUIT_GAME)) {
+        while (!choice.equals(Choice.QUIT_GAME)) {
             printMenu(choice, server, clientId);
             choice = getUserChoice(scan);
 
@@ -101,11 +101,10 @@ public class ClientMain {
         scan.close();
     }
 
-    /*
+    /**
      * A funcao SetLogger serve para o usuario verificar
      * o terminal dele tem suporte para caracteres
      * de escape ANSI
-     *
      */
 
     public static void setLogger(Scanner scan) {
@@ -119,13 +118,12 @@ public class ClientMain {
         console.clear();
     }
 
-    /*
+    /**
      * Imprime a interface principal do usuario
      *
      * @param server server que o usuario vai se conectar
      * @param clientId Id que o usuario vai utilizar
      * @param userChoice mostrar erro
-     *
      */
 
     public static void printMenu(Choice userChoice,String server, String clientId) {
@@ -154,7 +152,7 @@ public class ClientMain {
             console.append("\n");
         }
 
-        if (userChoice.equals(ERROR)) {
+        if (userChoice.equals(Choice.ERROR)) {
             console.appendEffect("\nSua escolha não é válida.", Color.RED, Mode.UNDERLINE);
             console.print();
         }
@@ -163,10 +161,9 @@ public class ClientMain {
         console.print();
     }
 
-    /*
+    /**
      * E usado para receber a escolha do usuario
      * no menu principal
-     *
      */
 
     public static Choice getUserChoice(Scanner scan) {
@@ -180,10 +177,11 @@ public class ClientMain {
             scan.next();
         }
 
-        return Choice.valueOf(userInput);
+        Choice choice = Choice.valueOf(userInput);
+        return (choice == null) ? Choice.ERROR : choice;
     }
 
-    /*
+    /**
      * A funcao startGame cria uma conexao com o server.
      *
      * O ID do usuario e a primeira mensagem enviada
@@ -192,38 +190,30 @@ public class ClientMain {
      *
      * @param server server usado para conexao
      * @param clientId Id usado na conexao
-     *
      */
 
     public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException, InterruptedException {
         console.clear();
-        client = new Client(new URI(server), console);
+        client = new Client(new URI(server), console, clientId);
         ClientMain main = new ClientMain(client);
         main.init(clientId);
 
-        try {
-            client.send(clientId);
-        } catch (WebsocketNotConnectedException ex) {
-            TimeUnit.SECONDS.sleep(3);
-            return;
-        }
-
-
         String userInput;
-        while (!client.isClosed()) {
+        while (!main.isClosed()) {
             userInput = scan.nextLine();
-            if (!client.isClosed()) client.send(userInput);
+            if (!main.isClosed()) main.sendMessage(userInput);
         }
+
+        console.clear();
     }
 
-    /*
+    /**
      * Usado para receber o nome do server ou nome
      * do usuario. E caso o usuario nao escreva nada
      * o valor padrao e utilizado
      *
      * @param defaultString servidor/nome padrao
      * @param text servidor/nome que o usuario escolheu
-     d
      */
 
     public static String getUserInput(Scanner scan, String text, String defaultString) {
@@ -234,37 +224,37 @@ public class ClientMain {
         String userInput = scan.nextLine();
         return userInput.isBlank() ? defaultString : userInput;
     }
-}
 
-/*
- * Classes das escolhas que o usuario pode fazer
- * para facilitar a leitura do codigo
- *
- */
+    /**
+     * Mapeia as escolhas do usuario
+     * para facilitar a leitura do codigo
+     */
 
-enum Choice {
-    ERROR(-1),
-    NONE(0),
-    ENTER_GAME(1),
-    SET_SERVER(2),
-    SET_USER(3),
-    COLORED_OUTPUT(4),
-    QUIT_GAME(5);
+    enum Choice {
+        ERROR(-1),
+        NONE(0),
+        ENTER_GAME(1),
+        SET_SERVER(2),
+        SET_USER(3),
+        COLORED_OUTPUT(4),
+        QUIT_GAME(5);
 
-    private final int value;
-    private static Map map = new HashMap<>();
+        private final int value;
+        private static Map map = new HashMap<>();
 
-    Choice(int value) {
-        this.value = value;
-    }
+        Choice(int value) {
+            this.value = value;
+        }
 
-    static {
-        for (Choice choice : Choice.values()) {
-            map.put(choice.value, choice);
+        static {
+            for (Choice choice : Choice.values()) {
+                map.put(choice.value, choice);
+            }
+        }
+
+        public static Choice valueOf(int choice) {
+            return (Choice) map.get(choice);
         }
     }
-
-    public static Choice valueOf(int choice) {
-        return (Choice) map.get(choice);
-    }
 }
+

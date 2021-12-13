@@ -5,35 +5,44 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 
-/*
+import br.usp.each.typerace.client.Logger.*;
+
+/**
  * @class Client gerenciar a conexao com o server
  *
  * @atrr console logger para uma UI mais bonita :D
- *
  */
 
 public class Client extends WebSocketClient {
 
     public Logger console;
+    public String clientId;
 
-    public Client(URI serverUri, Logger console) {
-        super(serverUri);
-        this.console = console;
-    }
-
-    /*
+    /**
      * Funcao para avisar o server e o usuario que a
      * conexao foi feita com sucesso
      *
-     * @param handshakedata aaaaaaaaa
+     * @param serverUri data enviada para o servidor para começar a conexão
+     */
+
+    public Client(URI serverUri, Logger console, String clientId) {
+        super(serverUri);
+        this.console = console;
+        this.clientId = clientId;
+    }
+
+    /**
+     * Funcao para avisar o server e o usuario que a
+     * conexao foi feita com sucesso
      *
+     * @param handshakedata data enviada para o servidor para começar a conexão
      */
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        send("Conexão feita!");
-        console.appendEffect("Uma nova conexão foi criada!!", Color.GREEN, Mode.NONE);
-        console.println();
+        console.appendEffect("Uma nova conexão foi criada!!\n", Color.GREEN, Mode.NONE);
+        console.print();
+        send(clientId);
     }
 
     @Override
@@ -41,13 +50,12 @@ public class Client extends WebSocketClient {
         System.out.println(message);
     }
 
-    /*
+    /**
      * Funcao para indicar quando a conexao foi
      * encerrada e o motivo de ser encerrada
      *
      * @param code   codigo de resposta
      * @param reason razao do fim da conexao
-     * @param remote aaaaaaaa
      */
 
     @Override
@@ -62,21 +70,23 @@ public class Client extends WebSocketClient {
 
         console.append("reason: ");
         console.appendEffect(reason, Color.RED, Mode.NONE);
-        console.println();
+        console.append("\n\nDigite 0 para prosseguir: ");
+        console.print();
     }
 
-    /*
+    /**
      * Mostrar qual excessao ocorreu para
      * o usuario
      *
      * @param ex excessao que ocorreu
-     *
      */
 
     @Override
     public void onError(Exception ex) {
+        console.clear();
         console.append("Uma excessão ocorreu!\n");
         console.appendEffect(ex.toString(), Color.RED, Mode.NONE);
+        console.append("\n");
         console.println();
     }
 }

@@ -1,6 +1,6 @@
 package br.usp.each.typerace.client;
 
-/*
+/**
  * @class Logger gerenciar a saida do programa do cliente
  *
  */
@@ -113,16 +113,15 @@ public class Logger {
         return supportsANSI;
     }
 
+    enum Color {
+        RED,
+        GREEN,
+        NONE
+    }
+    enum Mode {
+        BOLD,
+        UNDERLINE,
+        NONE
+    }
 }
 
-enum Color {
-    RED,
-    GREEN,
-    NONE
-}
-
-enum Mode {
-    BOLD,
-    UNDERLINE,
-    NONE
-}
