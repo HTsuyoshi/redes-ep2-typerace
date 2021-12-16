@@ -47,6 +47,7 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
+        console.clear();
         System.out.println(message);
     }
 

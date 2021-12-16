@@ -55,6 +55,7 @@ public class Server extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
+        if (message.length() == 0) return;
 
         if (isANewConnection(conn)) {
             if (verifyUser(conn, message)) {
@@ -144,10 +145,11 @@ public class Server extends WebSocketServer {
         connections.put(clientId, conn);
         if (typeRace.isRunning()) {
             conn.send("Uma partida está em execução no momento, por favor espere a partida acabar.");
-        } else {
-            broadcast(String.format("%s acabou de entrar!\n" +
-                    "Atualmente existem %d jogadores conectados.\n", clientId, connections.size()));
+            return;
         }
+
+        broadcast(String.format("%s acabou de entrar!\n" +
+                "Atualmente existem %d jogadores conectados.\n", clientId, connections.size()));
 
         help(conn);
     }

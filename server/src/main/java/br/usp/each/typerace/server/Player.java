@@ -2,83 +2,77 @@ package br.usp.each.typerace.server;
 
 public class Player {
 
-    private String name;
-    private int ranking;
+    private String user;
+    private boolean playing;
     private int score;
     private int wrong;
     private int listIndex;
-    private long startTime;
-    private long endTime;
-    private boolean playing;
+    private long time;
 
-    Player (String name) {
-
-        this.name = name;
-        this.ranking = -1;
+    Player (String user) {
+        this.user = user;
+        this.playing = true;
         this.score = 0;
         this.wrong = 0;
         this.listIndex = 0;
-        this.startTime = System.nanoTime();
-        this.endTime = -1;
-        this.playing = true;
+        this.time = 0;
     }
 
-    public boolean isPlaying() {
-        return this.playing;
+    public void compareWord(String correct, String word) {
+        if (correct.equals(word)) addScore();
+        else addWrong();
+
+        addIndex();
     }
 
-    public void finish() {
-        this.playing = false;
-    }
-
-    public void setRanking(int ranking) {
-        this.ranking = ranking;
-    }
-
-    public int getRanking() {
-        return this.ranking;
-    }
-
-    public int getIndex() {
-       return listIndex;
-    }
-
-    public void endGame() {
-        this.endTime = System.nanoTime();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public float getVelocity() {
-        long timeSeconds = (this.endTime - this.startTime) / ((long)(1_000_000_000.0));
-        return ((score + wrong) / timeSeconds); // words/second
+    public void finish(long startTime) {
+        this.time = System.nanoTime() - startTime;
+        setPlaying(false);
     }
 
     public int getScore() {
         return this.score;
     }
 
-    public int getWrong() {
-        return this.wrong;
-    }
-
     public void addScore() {
         score++;
+    }
+
+    public int getWrong() {
+        return this.wrong;
     }
 
     public void addWrong() {
         wrong++;
     }
 
-    public void compareWord(String correct, String word) {
-        if (correct.equals(word)) {
-            this.addScore();
-        } else {
-            this.addWrong();
-        }
 
-        listIndex++;
+    public boolean isPlaying() {
+        return this.playing;
     }
+
+    public void setPlaying(boolean playing) {
+        this.playing = playing;
+    }
+
+    public int getIndex() {
+       return listIndex;
+    }
+
+    public void addIndex() {
+        this.listIndex++;
+    }
+
+    public long getTime() {
+        return this.time;
+    }
+
+    public String getUser() {
+        return this.user;
+    }
+
+    public float getVelocity() {
+        return ((score + wrong) / (float) (getTime() / ((long)(1_000_000_000.0))));
+    }
+
 }
