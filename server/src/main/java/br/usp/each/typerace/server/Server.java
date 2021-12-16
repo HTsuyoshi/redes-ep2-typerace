@@ -64,6 +64,28 @@ public class Server extends WebSocketServer {
             return;
         }
 
+        String user = this.getUserId(conn).get();
+
+        if (this.typeRace.isRunning()) {
+            if (!isInGame(user)) return;
+            if (isPlaying(user)) this.typeRace.verifyAnswer(user, message);
+
+            if (!typeRace.isRunning())  {
+                broadcast(typeRace.scoreboard());
+
+                return;
+            }
+
+            if (!isPlaying(user)) {
+                conn.send("Parabéns, você terminou sua lista de palavras\n" +
+                        "Por favor espere os outros jogadores terminarem");
+            } else {
+                conn.send(this.typeRace.nextWord(user));
+            }
+
+            return;
+        }
+
         Choice userChoice = getChoice(message.charAt(0));
         switch (userChoice) {
             case HELP:
@@ -71,8 +93,9 @@ public class Server extends WebSocketServer {
                 break;
 
             case START_GAME:
-                String mensagem = "O jogo vai começar em breve";
-                broadcast(mensagem);
+                broadcast(String.format("%s começou o jogo", user));
+                typeRace.init(this.connections.keySet());
+                broadcast(typeRace.getWord(user));
                 break;
 
             case QUIT:
@@ -96,6 +119,13 @@ public class Server extends WebSocketServer {
      */
 
     public boolean verifyUser(WebSocket conn, String clientId) {
+        if (clientId.length() > 18) {
+            conn.send("Este ID é muito grande! (Limite de 18 caracteres)\n" +
+                    "Por gentileza escolha outro ID.\n");
+            conn.close(1008, "ID grande demais"); // Policy Violation (long ID)
+            return false;
+        }
+
         if (connections.containsKey(clientId)) {
             conn.send("Este ID já está sendo utilizado!\n" +
                     "Por gentileza escolha outro ID.\n");
@@ -112,7 +142,7 @@ public class Server extends WebSocketServer {
 
     public void addUser(WebSocket conn, String clientId) {
         connections.put(clientId, conn);
-        if (typeRace.isTheGameRunning()) {
+        if (typeRace.isRunning()) {
             conn.send("Uma partida está em execução no momento, por favor espere a partida acabar.");
         } else {
             broadcast(String.format("%s acabou de entrar!\n" +
@@ -130,8 +160,16 @@ public class Server extends WebSocketServer {
                 "\tS - Para sair do jogo\n");
     }
 
+    public boolean isInGame(String user) {
+        return (this.typeRace.getPlayer(user) != null);
+    }
+
+    public boolean isPlaying(String user) {
+        return this.typeRace.getPlayer(user).isPlaying();
+    }
+
     public void removeUser(WebSocket conn) {
-        Optional<String> userId = getUserId(conn);
+        String userId = getUserId(conn).get();
         conn.send(String.format("Obrigado por jogar! %s", userId.toString()));
         connections.remove(userId, conn);
         conn.close(1000, "O usuário quis sair do jogo");

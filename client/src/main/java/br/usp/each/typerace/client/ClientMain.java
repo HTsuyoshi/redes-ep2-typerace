@@ -81,7 +81,7 @@ public class ClientMain {
                     break;
 
                 case SET_USER:
-                    clientId = getUserInput(scan, "Defina seu ID ", "clientId");
+                    clientId = getUserInput(scan, "Defina seu ID (Limite de 18 caracteres)", "clientId");
                     break;
 
                 case COLORED_OUTPUT:
