@@ -26,3 +26,12 @@ Para ter uma melhor experiência ao jogar o jogo recomendamos rodar :D :
 ```sh
 ./gradlew client:run --console=plain
 ```
+
+### Preview
+
+<center>
+    <img src="./assets/preview.gif" width="480" />
+</center>
+
+### Lista de palavras
+    A lista de palavras é feito usando como base uma lista com as palavras do roteiro do filme Shrek 2 com palavras únicas e acima de 3 caracteres
