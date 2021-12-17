@@ -8,15 +8,12 @@ import java.net.URI;
 import br.usp.each.typerace.client.Logger.*;
 
 /**
- * @class Client gerenciar a conexao com o server
- *
- * @atrr console logger para uma UI mais bonita :D
+ * Client gerenciar a conexao com o server
  */
 
 public class Client extends WebSocketClient {
 
     public Logger console;
-    public String clientId;
 
     /**
      * Funcao para avisar o server e o usuario que a
@@ -25,10 +22,9 @@ public class Client extends WebSocketClient {
      * @param serverUri data enviada para o servidor para começar a conexão
      */
 
-    public Client(URI serverUri, Logger console, String clientId) {
+    public Client(URI serverUri, Logger console) {
         super(serverUri);
         this.console = console;
-        this.clientId = clientId;
     }
 
     /**
@@ -42,13 +38,14 @@ public class Client extends WebSocketClient {
     public void onOpen(ServerHandshake handshakedata) {
         console.appendEffect("Uma nova conexão foi criada!!\n", Color.GREEN, Mode.NONE);
         console.print();
-        send(clientId);
     }
 
     @Override
     public void onMessage(String message) {
         console.clear();
-        System.out.println(message);
+        console.append(message);
+        console.append("\nSua mensagem: ");
+        console.print();
     }
 
     /**
@@ -61,6 +58,7 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        console.clear();
         console.append("Código: ");
         if (code == 1000) {
             console.appendEffect(String.valueOf(code), Color.GREEN, Mode.NONE);

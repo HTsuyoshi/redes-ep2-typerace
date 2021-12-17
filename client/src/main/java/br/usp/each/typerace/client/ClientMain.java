@@ -6,16 +6,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.InputMismatchException;
-import java.util.Map;
 import java.util.Scanner;
 
 import br.usp.each.typerace.client.Logger.*;
 
 /**
- * @class ClientMenu pequena interface para o usuario se conectar com o server
+ * ClientMenu pequena interface para o usuario se conectar com o server
  *
- * @atrr console logger para uma UI mais bonita :D
- * @atrr client websocket usada para fazer a conexao
+ * atrr console logger para uma UI mais bonita :D
+ * client websocket usada para fazer a conexao
  */
 
 public class ClientMain {
@@ -25,7 +24,7 @@ public class ClientMain {
     private static WebSocketClient client;
 
     public ClientMain(WebSocketClient client) {
-        this.client = client;
+        ClientMain.client = client;
     }
 
     /**
@@ -43,8 +42,8 @@ public class ClientMain {
         client.send(message);
     }
 
-    public boolean isClosed() {
-        return client.isClosed();
+    public boolean isOpen() {
+        return !client.isClosed();
     }
 
     /**
@@ -54,7 +53,7 @@ public class ClientMain {
      * desabilitar cor no terminal.
      */
 
-    public static void main(String[] args) throws URISyntaxException, InterruptedException {
+    public static void main(String[] args) throws URISyntaxException {
         console = new Logger(true);
         Scanner scan = new Scanner(System.in);
         Choice choice = Choice.NONE;
@@ -63,7 +62,7 @@ public class ClientMain {
                 server = "";
 
         setLogger(scan);
-        while (!choice.equals(Choice.QUIT_GAME)) {
+        while (true) {
             printMenu(choice, server, clientId);
             choice = getUserChoice(scan);
 
@@ -89,6 +88,7 @@ public class ClientMain {
                     break;
 
                 case QUIT_GAME:
+                    scan.close();
                     return;
 
                 default:
@@ -98,7 +98,6 @@ public class ClientMain {
             console.clear();
         }
 
-        scan.close();
     }
 
     /**
@@ -126,7 +125,7 @@ public class ClientMain {
      * @param userChoice mostrar erro
      */
 
-    public static void printMenu(Choice userChoice,String server, String clientId) {
+    public static void printMenu(Choice userChoice, String server, String clientId) {
         console.appendEffect("==== Bem Vindo ao TYPE RACE ====\n", Color.NONE, Mode.BOLD);
         console.append("1 - Começar o Jogo\n");
         console.append("2 - Definir nome do servidor\n");
@@ -192,16 +191,16 @@ public class ClientMain {
      * @param clientId Id usado na conexao
      */
 
-    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException, InterruptedException {
+    public static void startGame(Scanner scan, String server, String clientId) throws URISyntaxException {
         console.clear();
-        client = new Client(new URI(server), console, clientId);
+        client = new Client(new URI(String.format("%s/%s", server, clientId)), console);
         ClientMain main = new ClientMain(client);
         main.init(clientId);
 
         String userInput;
-        while (!main.isClosed()) {
+        while (main.isOpen()) {
             userInput = scan.nextLine();
-            if (!main.isClosed()) main.sendMessage(userInput);
+            if (main.isOpen()) main.sendMessage(userInput);
         }
 
         console.clear();
@@ -240,7 +239,7 @@ public class ClientMain {
         QUIT_GAME(5);
 
         private final int value;
-        private static Map map = new HashMap<>();
+        private static final HashMap<Object, Object> map = new HashMap<>();
 
         Choice(int value) {
             this.value = value;

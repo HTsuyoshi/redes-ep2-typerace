@@ -2,7 +2,7 @@ package br.usp.each.typerace.server;
 
 public class Player {
 
-    private String user;
+    private final String user;
     private boolean playing;
     private int score;
     private int wrong;
@@ -62,9 +62,12 @@ public class Player {
     public void addIndex() {
         this.listIndex++;
     }
-
     public long getTime() {
         return this.time;
+    }
+
+    public float getTimeSeconds() {
+        return  ((float) getTime() / ((long)(1_000_000_000.0)));
     }
 
     public String getUser() {
@@ -72,7 +75,7 @@ public class Player {
     }
 
     public float getVelocity() {
-        return ((score + wrong) / (float) (getTime() / ((long)(1_000_000_000.0))));
+        return ((score + wrong) / getTimeSeconds());
     }
 
 }

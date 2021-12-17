@@ -1,5 +1,10 @@
 package br.usp.each.typerace.server;
 
+import java.util.Random;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class TypeRace {
@@ -7,6 +12,8 @@ public class TypeRace {
     private long startTime;
     private boolean running;
     private int playersPlaying;
+    private int maxScore;
+    private int wordListSize;
     private final Map<String, Player> players;
     private String[] wordList;
 
@@ -14,7 +21,9 @@ public class TypeRace {
         this.startTime = 0;
         this.running = false;
         this.playersPlaying = 0;
-        this.players = new HashMap<String, Player>();
+        this.maxScore = 10;
+        this.wordListSize = 100;
+        this.players = new HashMap<>();
         this.generateList();
     }
 
@@ -41,6 +50,22 @@ public class TypeRace {
         this.running = running;
     }
 
+    public int getMaxScore() {
+        return this.maxScore;
+    }
+
+    public void setMaxScore(int maxScore) {
+        this.maxScore = maxScore;
+    }
+
+    public int getWordListSize() {
+        return this.wordListSize;
+    }
+
+    public void setWordListSize(int listSize) {
+        this.wordListSize = listSize;
+    }
+
     public void startTimer() {
         this.startTime = System.nanoTime();
     }
@@ -51,14 +76,11 @@ public class TypeRace {
 
         player.compareWord(wordList[listIndex], word);
 
-        if (listIndex == wordList.length - 1) {
+        if (listIndex == this.wordListSize - 1 ||
+            player.getScore() == this.getMaxScore()) {
             playerFinished(player);
             if (playersPlaying == 0) setRunning(false);
         }
-    }
-
-    public String nextWord(String player) {
-        return wordList[players.get(player).getIndex()];
     }
 
     public void playerFinished(Player player) {
@@ -71,28 +93,58 @@ public class TypeRace {
     }
 
     public void generateList() {
-        this.wordList = new String[]{"asdf", "zxcv", "qwer"};
+        InputStream is = getClass()
+                .getClassLoader()
+                .getResourceAsStream("roteiroShrek.txt");
+
+        assert is != null;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String[] text;
+        try {
+            text = reader.readLine().split(" ");
+        } catch(IOException e) {
+            System.err.println("Não foi possível gerar a lista");
+            e.printStackTrace();
+            return;
+        }
+
+        this.wordList = new String[this.wordListSize];
+        Random rand = new Random();
+        for (int i=0, listIndex = rand.nextInt(); i<this.wordListSize; i++, listIndex = rand.nextInt()) {
+            if (listIndex < 0) listIndex = -listIndex;
+            this.wordList[i] = text[listIndex % text.length];
+        }
     }
 
-    public String getWord(String player) {
-        return wordList[players.get(player).getIndex()];
+    public String getWord(String user) {
+        Player player = players.get(user);
+        return String.format("Acertos: %4d/%d%nErros:   %4d/%d%nPalavra: %s",
+                player.getScore(),
+                this.maxScore,
+                player.getWrong(),
+                this.wordListSize,
+                wordList[player.getIndex()]);
     }
 
     public String scoreboard() {
 
-        PriorityQueue<Player> orderedList = new PriorityQueue<Player>(new PlayerComparator());
+        PriorityQueue<Player> orderedList = new PriorityQueue<>(new PlayerComparator());
         StringBuilder table = new StringBuilder();
         table.append("                   PONTUAÇÃO FINAL\n");
         table.append(" _________________________________________________________\n");
         table.append("|_rank_|_name_______________|_palavra/sec_|_score_|_wrong_|\n");
         //            |_4.___|_Ricardo____________|_1,23________|_80____|_20____|
 
-        for(Player player : players.values()) {
-            orderedList.add(player);
-        }
+        orderedList.addAll(players.values());
 
-        int i = 0;
+        int i = 1;
+        float duracaoPartida = 0;
         for(Player player : orderedList) {
+            float duracaoPlayer = player.getTimeSeconds();
+            if (duracaoPlayer > duracaoPartida) {
+                duracaoPartida = duracaoPlayer;
+            }
+
             table.append(String.format("| %-4d.| %-19s| %-12.2f| %-6d| %-6d|\n",
                     i++,
                     player.getUser(),
@@ -101,6 +153,9 @@ public class TypeRace {
                     player.getWrong())
                     .replace(" ", "_"));
         }
+
+        table.append(String.format("\nDuração da partida: %10.2f seg\n", duracaoPartida));
+        table.append("\nDigite h para continuar:\n");
 
         return table.toString();
     }
@@ -111,9 +166,8 @@ class PlayerComparator implements Comparator<Player> {
     public int compare(Player player1, Player player2) {
         if(player1.getScore() > player2.getScore()) return -1;
         if(player1.getScore() < player2.getScore()) return 1;
-        if(player1.getTime() > player2.getTime()) return 1;
-        if(player1.getTime() < player2.getTime()) return -1;
-        return player1.getUser().compareTo(player2.getUser());
+
+        return Long.compare(player1.getTime(), player2.getTime());
     }
 }
 

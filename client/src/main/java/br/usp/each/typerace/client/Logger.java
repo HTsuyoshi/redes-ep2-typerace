@@ -1,7 +1,7 @@
 package br.usp.each.typerace.client;
 
 /**
- * @class Logger gerenciar a saida do programa do cliente
+ * Logger gerenciar a saida do programa do cliente
  *
  */
 
@@ -9,16 +9,16 @@ public class Logger {
 
     private Boolean supportsANSI;
 
-    private String ANSI_RED;
-    private String ANSI_GREEN;
+    private final String ANSI_RED;
+    private final String ANSI_GREEN;
 
-    private String ANSI_UNDERLINE;
-    private String ANSI_BOLD;
+    private final String ANSI_UNDERLINE;
+    private final String ANSI_BOLD;
 
-    private String ANSI_RESET;
-    private String ANSI_CLEAR;
+    private final String ANSI_RESET;
+    private final String ANSI_CLEAR;
 
-    private StringBuilder stringToPrint;
+    private final StringBuilder stringToPrint;
 
     Logger (Boolean supportsANSI) {
         this.supportsANSI = supportsANSI;
@@ -44,12 +44,12 @@ public class Logger {
     }
 
     public void print() {
-        System.out.print(stringToPrint.toString());
+        System.out.print(stringToPrint);
         this.reset();
     }
 
     public void println() {
-        System.out.println(stringToPrint.toString());
+        System.out.println(stringToPrint);
         this.reset();
     }
 
