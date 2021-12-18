@@ -34,6 +34,10 @@ public class Player {
         setPlaying(false);
     }
 
+    public void resetListIndex() {
+        this.listIndex = 0;
+    }
+
     /* Getter and Setters */
 
     public int getScore() {

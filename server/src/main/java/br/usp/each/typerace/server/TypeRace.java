@@ -17,7 +17,7 @@ public class TypeRace {
     private boolean running;
     private int playersPlaying;
     private int maxScore;
-    private int wordListSize;
+    private final int wordListSize;
     private final Map<String, Player> players;
     private String[] wordList;
 
@@ -26,7 +26,7 @@ public class TypeRace {
         this.running = false;
         this.playersPlaying = 0;
         this.maxScore = 10;
-        this.wordListSize = 100;
+        this.wordListSize = 500;
         this.players = new HashMap<>();
         this.generateList();
     }
@@ -47,8 +47,8 @@ public class TypeRace {
 
     /**
      * verifyAnswer compara a palavra digitada pelo usuario
-     * e verifica se ele ja atingiu um certo numero de acertos
-     * ou se a lista acabou
+     * se chegou no fim da lista volta a lista para o comeco
+     * se acertou todas as palavras termina o jogo
      *
      * @param user nome do usuario usado para recuperar a
      *             palavra atual
@@ -61,8 +61,11 @@ public class TypeRace {
 
         player.compareWord(wordList[listIndex], word);
 
-        if (listIndex == this.wordListSize - 1 ||
-            player.getScore() == this.getMaxScore()) {
+        if (player.getListIndex() == getWordListSize() - 1) {
+            player.resetListIndex();
+        }
+
+        if (player.getScore() == this.getMaxScore()) {
             finishPlayer(player);
             if (playersPlaying == 0) setRunning(false);
         }
@@ -76,7 +79,6 @@ public class TypeRace {
     /**
      * generateList gera uma lista pseudoaleatoria de palavras
      * usando o arquivo roteiroShrek.txt
-     *
      */
 
     public void generateList() {
@@ -161,11 +163,10 @@ public class TypeRace {
 
     public String getWord(String user) {
         Player player = players.get(user);
-        return String.format("Acertos: %4d/%d%nErros:   %4d/%d%nPalavra: %s",
+        return String.format("Acertos: %4d/%d%nErros:   %4d%nPalavra: %s",
                 player.getScore(),
                 getMaxScore(),
                 player.getWrong(),
-                getWordListSize(),
                 wordList[player.getListIndex()]);
     }
 
@@ -187,16 +188,16 @@ public class TypeRace {
         return this.wordListSize;
     }
 
-    public void setWordListSize(int listSize) {
-        this.wordListSize = listSize;
-    }
-
     public Player getPlayer(String name) {
         return players.get(name);
     }
 
     public void setPlayersPlaying(int playersInGame) {
         this.playersPlaying= playersInGame;
+    }
+
+    public int getPlayersPlaying() {
+        return this.playersPlaying;
     }
 
     public void startTimer() {

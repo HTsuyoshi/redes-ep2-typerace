@@ -41,7 +41,15 @@ public class Server extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        if(!conn.isClosed()) {
+        Optional<String> userId = getUserId(conn);
+        if (userId.isPresent()) {
+            if (typeRace.isRunning()) {
+                typeRace.finishPlayer(typeRace.getPlayer(userId.get()));
+            }
+            this.connections.remove(conn);
+        }
+
+        if (!conn.isClosed()) {
             conn.close(code, reason);
         }
     }
@@ -90,11 +98,6 @@ public class Server extends WebSocketServer {
                 this.setMaxScore(message.substring(2).strip(), conn, user);
                 break;
 
-            case SET_LIST_SIZE:
-                if (message.length() < 3) return;
-                this.setListSize(message.substring(2).strip(), conn, user);
-                break;
-
             case QUIT:
                 System.out.println(message);
                 removeUser(conn);
@@ -118,6 +121,12 @@ public class Server extends WebSocketServer {
      */
 
     public void inputToTypeRace(WebSocket conn, String user, String message) {
+        if (typeRace.getPlayersPlaying() == 0)  {
+            typeRace.setRunning(false);
+            broadcast(typeRace.scoreboard());
+            return;
+        }
+
         if (!isInGame(user)) return;
         if (isPlaying(user)) this.typeRace.verifyAnswer(user, message);
 
@@ -183,11 +192,7 @@ public class Server extends WebSocketServer {
         message.append("\tN - Para escolher o número máximo de pontos\n");
         message.append("\tEx:\n");
         message.append("\t\tN 10\n");
-        message.append("\tL - Para escolher o número máximo de palavras\n");
-        message.append("\tEx:\n");
-        message.append("\t\tL 10\n");
         message.append("\tS - Para sair do jogo\n\n");
-        message.append(String.format("O número de palavras é: %d\n", typeRace.getWordListSize()));
         message.append(String.format("O número de pontos para acabar é: %d\n", typeRace.getMaxScore()));
         conn.send(message.toString());
     }
@@ -218,18 +223,6 @@ public class Server extends WebSocketServer {
     }
 
     /* Getter and Setters*/
-
-    public void setListSize(String listSize, WebSocket conn, String user) {
-        if (validAndPositive(listSize)) {
-            typeRace.setWordListSize(Integer.parseInt(listSize));
-            typeRace.generateList();
-            broadcast(String.format("O jogador %s definiu o tamanho da lista para %d\n" +
-                    "\nPressione h para continuar", user, typeRace.getWordListSize()));
-        } else {
-            conn.send("Esse não é um número válido para o tamanho da lista\n" +
-                    "\nPressione h para continuar");
-        }
-    }
 
     public void setMaxScore(String maxScore, WebSocket conn, String user) {
         if (validAndPositive(maxScore) ) {
@@ -270,7 +263,6 @@ public class Server extends WebSocketServer {
         HELP('h'),
         START_GAME('c'),
         SET_MAX_SCORE('n'),
-        SET_LIST_SIZE('l'),
         QUIT('s'),
         NONE(' ');
 
