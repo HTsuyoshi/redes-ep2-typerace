@@ -2,7 +2,6 @@ package br.usp.each.typerace.client;
 
 /**
  * Logger gerenciar a saida do programa do cliente
- *
  */
 
 public class Logger {
@@ -57,7 +56,7 @@ public class Logger {
         if (this.supportsANSI) stringToPrint.append(this.ANSI_RESET);
     }
 
-    /*
+    /**
      * Adicionar cor ou modo de saida para uma string
      *
      * @param text      texto para imprimir
@@ -118,6 +117,7 @@ public class Logger {
         GREEN,
         NONE
     }
+
     enum Mode {
         BOLD,
         UNDERLINE,

@@ -1,5 +1,9 @@
 package br.usp.each.typerace.server;
 
+/**
+ * Player representar e armazenar as informacoes do jogador
+ */
+
 public class Player {
 
     private final String user;
@@ -22,13 +26,15 @@ public class Player {
         if (correct.equals(word)) addScore();
         else addWrong();
 
-        addIndex();
+        addListIndex();
     }
 
     public void finish(long startTime) {
         this.time = System.nanoTime() - startTime;
         setPlaying(false);
     }
+
+    /* Getter and Setters */
 
     public int getScore() {
         return this.score;
@@ -46,6 +52,13 @@ public class Player {
         wrong++;
     }
 
+    public int getListIndex() {
+        return listIndex;
+    }
+
+    public void addListIndex() {
+        this.listIndex++;
+    }
 
     public boolean isPlaying() {
         return this.playing;
@@ -55,27 +68,20 @@ public class Player {
         this.playing = playing;
     }
 
-    public int getIndex() {
-       return listIndex;
-    }
-
-    public void addIndex() {
-        this.listIndex++;
-    }
-    public long getTime() {
-        return this.time;
-    }
-
-    public float getTimeSeconds() {
-        return  ((float) getTime() / ((long)(1_000_000_000.0)));
+    public float getVelocity() {
+        return ((score + wrong) / getTimeSeconds());
     }
 
     public String getUser() {
         return this.user;
     }
 
-    public float getVelocity() {
-        return ((score + wrong) / getTimeSeconds());
+    public float getTimeSeconds() {
+        return  ((float) getTime() / ((long)(1_000_000_000.0)));
+    }
+
+    public long getTime() {
+        return this.time;
     }
 
 }

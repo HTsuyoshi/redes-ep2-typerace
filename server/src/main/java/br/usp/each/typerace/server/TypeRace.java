@@ -7,6 +7,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
+/**
+ * TypeRace classe que controla a logica do jogo
+ */
+
 public class TypeRace {
 
     private long startTime;
@@ -27,70 +31,53 @@ public class TypeRace {
         this.generateList();
     }
 
+    /**
+     * init comeca o jogo, adiciona os players conectados ao jogo
+     * e comeca o timer para contar a duracao do jogo
+     *
+     * @param playerList lista dos jogadores conectados, usada para
+     *                   adicionar os jogadores no jogo
+     */
+
     public void init(Set<String> playerList) {
         this.setRunning(true);
         this.setPlayers(playerList);
         this.startTimer();
     }
 
-    public void setPlayers(Set<String> playerList) {
-        for (String playerName : playerList) {
-            players.put(playerName, new Player(playerName));
-        }
-        setPlayersPlaying(playerList.size());
-    }
-
-    public void setPlayersPlaying(int playersInGame) {
-        this.playersPlaying= playersInGame;
-    }
-
-    public boolean isRunning() { return this.running; }
-
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-
-    public int getMaxScore() {
-        return this.maxScore;
-    }
-
-    public void setMaxScore(int maxScore) {
-        this.maxScore = maxScore;
-    }
-
-    public int getWordListSize() {
-        return this.wordListSize;
-    }
-
-    public void setWordListSize(int listSize) {
-        this.wordListSize = listSize;
-    }
-
-    public void startTimer() {
-        this.startTime = System.nanoTime();
-    }
+    /**
+     * verifyAnswer compara a palavra digitada pelo usuario
+     * e verifica se ele ja atingiu um certo numero de acertos
+     * ou se a lista acabou
+     *
+     * @param user nome do usuario usado para recuperar a
+     *             palavra atual
+     * @param word resposta do usuario
+     */
 
     public void verifyAnswer(String user, String word) {
         Player player = players.get(user);
-        int listIndex = player.getIndex();
+        int listIndex = player.getListIndex();
 
         player.compareWord(wordList[listIndex], word);
 
         if (listIndex == this.wordListSize - 1 ||
             player.getScore() == this.getMaxScore()) {
-            playerFinished(player);
+            finishPlayer(player);
             if (playersPlaying == 0) setRunning(false);
         }
     }
 
-    public void playerFinished(Player player) {
+    public void finishPlayer(Player player) {
         player.finish(startTime);
         this.playersPlaying--;
     }
 
-    public Player getPlayer(String name) {
-        return players.get(name);
-    }
+    /**
+     * generateList gera uma lista pseudoaleatoria de palavras
+     * usando o arquivo roteiroShrek.txt
+     *
+     */
 
     public void generateList() {
         InputStream is = getClass()
@@ -116,15 +103,10 @@ public class TypeRace {
         }
     }
 
-    public String getWord(String user) {
-        Player player = players.get(user);
-        return String.format("Acertos: %4d/%d%nErros:   %4d/%d%nPalavra: %s",
-                player.getScore(),
-                this.maxScore,
-                player.getWrong(),
-                this.wordListSize,
-                wordList[player.getIndex()]);
-    }
+    /**
+     * scoreboard devolve o scoreboard da partida,
+     * usa uma priority queue para criar o ranking
+     */
 
     public String scoreboard() {
 
@@ -159,7 +141,73 @@ public class TypeRace {
 
         return table.toString();
     }
+
+    /* Getter and Setters */
+
+    public void setPlayers(Set<String> playerList) {
+        for (String playerName : playerList) {
+            players.put(playerName, new Player(playerName));
+        }
+        setPlayersPlaying(playerList.size());
+    }
+
+    /**
+     * getWord devolve a palavra, acertos e erros
+     * do usuario especificado
+     *
+     * @param user especifica o usuario para pegar
+     *             seus atributos
+     */
+
+    public String getWord(String user) {
+        Player player = players.get(user);
+        return String.format("Acertos: %4d/%d%nErros:   %4d/%d%nPalavra: %s",
+                player.getScore(),
+                getMaxScore(),
+                player.getWrong(),
+                getWordListSize(),
+                wordList[player.getListIndex()]);
+    }
+
+    public boolean isRunning() { return this.running; }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public int getMaxScore() {
+        return this.maxScore;
+    }
+
+    public void setMaxScore(int maxScore) {
+        this.maxScore = maxScore;
+    }
+
+    public int getWordListSize() {
+        return this.wordListSize;
+    }
+
+    public void setWordListSize(int listSize) {
+        this.wordListSize = listSize;
+    }
+
+    public Player getPlayer(String name) {
+        return players.get(name);
+    }
+
+    public void setPlayersPlaying(int playersInGame) {
+        this.playersPlaying= playersInGame;
+    }
+
+    public void startTimer() {
+        this.startTime = System.nanoTime();
+    }
+
 }
+
+/**
+ * PlayerComparator e usado para criar o ranking dos jogadores.
+ */
 
 class PlayerComparator implements Comparator<Player> {
     @Override

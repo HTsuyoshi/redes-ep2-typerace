@@ -15,24 +15,10 @@ public class Client extends WebSocketClient {
 
     public Logger console;
 
-    /**
-     * Funcao para avisar o server e o usuario que a
-     * conexao foi feita com sucesso
-     *
-     * @param serverUri data enviada para o servidor para começar a conexão
-     */
-
     public Client(URI serverUri, Logger console) {
         super(serverUri);
         this.console = console;
     }
-
-    /**
-     * Funcao para avisar o server e o usuario que a
-     * conexao foi feita com sucesso
-     *
-     * @param handshakedata data enviada para o servidor para começar a conexão
-     */
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
@@ -47,14 +33,6 @@ public class Client extends WebSocketClient {
         console.append("\nSua mensagem: ");
         console.print();
     }
-
-    /**
-     * Funcao para indicar quando a conexao foi
-     * encerrada e o motivo de ser encerrada
-     *
-     * @param code   codigo de resposta
-     * @param reason razao do fim da conexao
-     */
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
@@ -72,13 +50,6 @@ public class Client extends WebSocketClient {
         console.append("\n\nDigite 0 para prosseguir: ");
         console.print();
     }
-
-    /**
-     * Mostrar qual excessao ocorreu para
-     * o usuario
-     *
-     * @param ex excessao que ocorreu
-     */
 
     @Override
     public void onError(Exception ex) {

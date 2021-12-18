@@ -51,8 +51,12 @@ public class Server extends WebSocketServer {
      * conexao, a funcao adiciona o jogador no hashmap
      * connections.
      *
-     * Se o jogador ja estiver cadastrado o server recebe
-     * a entrada do jogador como uma escolha do menu
+     * Se o jogador ja estiver cadastrado a entrada do jogador
+     * e interpretada como uma escolha do menu
+     *
+     * Se estiver rodando um jogo a entrada e interpretada
+     * como palavra do jogo
+     *
      */
 
     @Override
@@ -64,22 +68,7 @@ public class Server extends WebSocketServer {
         String user = optionalUser.get();
 
         if (this.typeRace.isRunning()) {
-            if (!isInGame(user)) return;
-            if (isPlaying(user)) this.typeRace.verifyAnswer(user, message);
-
-            if (!typeRace.isRunning())  {
-                broadcast(typeRace.scoreboard());
-
-                return;
-            }
-
-            if (!isPlaying(user)) {
-                conn.send("Parabéns, você terminou sua lista de palavras\n" +
-                        "Por favor espere os outros jogadores terminarem");
-            } else {
-                conn.send(this.typeRace.getWord(user));
-            }
-
+            inputToTypeRace(conn, user, message);
             return;
         }
 
@@ -116,10 +105,38 @@ public class Server extends WebSocketServer {
         }
     }
 
+
     /**
-     * Verifica se ja existe algum usuario com o mesmo nome,
-     * se existir retorna erro de violacao de politica e uma
-     * mensagem
+     * inputToTypeRace logica do jogo typeRace:
+     *   * Comparar palavras
+     *   * Terminar o jogo
+     *
+     * @param conn    conexao para mandar mensagem
+     * @param user    usado para verificar se esta jogando ou
+     *                esta cadastrado
+     * @param message mensagem do jogador
+     */
+
+    public void inputToTypeRace(WebSocket conn, String user, String message) {
+        if (!isInGame(user)) return;
+        if (isPlaying(user)) this.typeRace.verifyAnswer(user, message);
+
+        if (!typeRace.isRunning())  {
+            broadcast(typeRace.scoreboard());
+            return;
+        }
+
+        if (!isPlaying(user)) {
+            conn.send("Parabéns, você terminou sua lista de palavras\n" +
+                    "Por favor espere os outros jogadores terminarem");
+        } else {
+            conn.send(this.typeRace.getWord(user));
+        }
+    }
+
+    /**
+     * verifyUser Verifica se o usuario viola alguma politica
+     * do jogo
      */
 
     public boolean verifyUser(WebSocket conn, String clientId) {
@@ -141,7 +158,7 @@ public class Server extends WebSocketServer {
     }
 
     /**
-     * Adiciona o jogador e envia o menu do jogo
+     * addUser Adiciona o jogador e envia o menu do jogo
      */
 
     public void addUser(WebSocket conn, String clientId) {
@@ -159,15 +176,15 @@ public class Server extends WebSocketServer {
     }
 
     public void help(WebSocket conn) {
-        StringBuilder message = new StringBuilder("Bem vindo ao servidor do TypeRace!\n");
+        StringBuilder message = new StringBuilder("=== Bem vindo ao servidor do TypeRace! ===\n\n");
         message.append("Lista de commandos disponíveis:\n\n");
         message.append("\tH - Para ver essa mensagem de texto\n");
         message.append("\tC - Para começar o jogo\n");
         message.append("\tN - Para escolher o número máximo de pontos\n");
-        message.append("\tExemplo:\n");
+        message.append("\tEx:\n");
         message.append("\t\tN 10\n");
         message.append("\tL - Para escolher o número máximo de palavras\n");
-        message.append("\tExemplo:\n");
+        message.append("\tEx:\n");
         message.append("\t\tL 10\n");
         message.append("\tS - Para sair do jogo\n\n");
         message.append(String.format("O número de palavras é: %d\n", typeRace.getWordListSize()));
@@ -175,30 +192,6 @@ public class Server extends WebSocketServer {
         conn.send(message.toString());
     }
 
-    public void setListSize(String listSize, WebSocket conn, String user) {
-        if (validAndPositive(listSize)) {
-            typeRace.setWordListSize(Integer.parseInt(listSize));
-            typeRace.generateList();
-            broadcast(String.format("O jogador %s definiu o tamanho da lista para %d\n" +
-                    "\nPressione h para continuar", user, typeRace.getWordListSize()));
-        } else {
-            conn.send("Esse não é um número válido para o tamanho da lista\n" +
-                    "\nPressione h para continuar");
-        }
-    }
-
-    public void setMaxScore(String maxScore, WebSocket conn, String user) {
-        if (validAndPositive(maxScore) ) {
-            int score = Integer.parseInt(maxScore);
-            if (score > typeRace.getMaxScore()) return;
-            typeRace.setMaxScore(score);
-            broadcast(String.format("O jogador %s definiu %d para a pontuação máxima\n" +
-                    "\nPressione h para continuar", user, typeRace.getMaxScore()));
-        } else {
-            conn.send("Esse não é um número válido para pontuação máxima\n" +
-                    "\nPressione h para continuar");
-        }
-    }
 
     public boolean validAndPositive(String stringNumber) {
         int number;
@@ -215,10 +208,6 @@ public class Server extends WebSocketServer {
         return (this.typeRace.getPlayer(user) != null);
     }
 
-    public boolean isPlaying(String user) {
-        return this.typeRace.getPlayer(user).isPlaying();
-    }
-
     public void removeUser(WebSocket conn) {
         Optional<String> userId = getUserId(conn);
         if (userId.isEmpty()) return;
@@ -226,6 +215,37 @@ public class Server extends WebSocketServer {
         conn.send(String.format("Obrigado por jogar! %s", userId.get()));
         connections.remove(userId.get(), conn);
         conn.close(1000, "O usuário quis sair do jogo");
+    }
+
+    /* Getter and Setters*/
+
+    public void setListSize(String listSize, WebSocket conn, String user) {
+        if (validAndPositive(listSize)) {
+            typeRace.setWordListSize(Integer.parseInt(listSize));
+            typeRace.generateList();
+            broadcast(String.format("O jogador %s definiu o tamanho da lista para %d\n" +
+                    "\nPressione h para continuar", user, typeRace.getWordListSize()));
+        } else {
+            conn.send("Esse não é um número válido para o tamanho da lista\n" +
+                    "\nPressione h para continuar");
+        }
+    }
+
+    public void setMaxScore(String maxScore, WebSocket conn, String user) {
+        if (validAndPositive(maxScore) ) {
+            int score = Integer.parseInt(maxScore);
+            if (score > typeRace.getWordListSize()) return;
+            typeRace.setMaxScore(score);
+            broadcast(String.format("O jogador %s definiu %d para a pontuação máxima\n" +
+                    "\nPressione h para continuar", user, typeRace.getMaxScore()));
+        } else {
+            conn.send("Esse não é um número válido para pontuação máxima\n" +
+                    "\nPressione h para continuar");
+        }
+    }
+
+    public boolean isPlaying(String user) {
+        return this.typeRace.getPlayer(user).isPlaying();
     }
 
     public Optional<String> getUserId(WebSocket conn) {

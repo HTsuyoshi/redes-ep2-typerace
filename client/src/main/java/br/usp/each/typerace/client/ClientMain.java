@@ -11,9 +11,9 @@ import java.util.Scanner;
 import br.usp.each.typerace.client.Logger.*;
 
 /**
- * ClientMenu pequena interface para o usuario se conectar com o server
+ * ClientMenu interface para o usuario se conectar com o server
  *
- * atrr console logger para uma UI mais bonita :D
+ * console logger para uma UI bonita :D
  * client websocket usada para fazer a conexao
  */
 
@@ -28,7 +28,7 @@ public class ClientMain {
     }
 
     /**
-     * A funcao init comeca uma conexao com o servidor
+     * init comeca uma conexao com o servidor
      *
      * @param clientId ID escolhido pelo usuario
      */
@@ -47,9 +47,9 @@ public class ClientMain {
     }
 
     /**
-     * A funcao main serve para executar o menu do jogo
-     * permitindo que o jogador consiga escolher seu servidor,
-     * colocar seu nome, conectar com o server e habilidar ou
+     * main serve para executar o menu do jogo permitindo que
+     * o jogador consiga escolher seu servidor,
+     * colocar seu nome, conectar com o server e habilitar ou
      * desabilitar cor no terminal.
      */
 
@@ -101,7 +101,7 @@ public class ClientMain {
     }
 
     /**
-     * A funcao SetLogger serve para o usuario verificar
+     * setLogger serve para o usuario verificar
      * o terminal dele tem suporte para caracteres
      * de escape ANSI
      */
@@ -159,11 +159,6 @@ public class ClientMain {
         console.append("\nSua escolha: ");
         console.print();
     }
-
-    /**
-     * E usado para receber a escolha do usuario
-     * no menu principal
-     */
 
     public static Choice getUserChoice(Scanner scan) {
 
