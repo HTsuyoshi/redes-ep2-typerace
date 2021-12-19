@@ -26,4 +26,5 @@ class ClientMainTest {
 
         verify(clientMock).connect();
     }
+
 }

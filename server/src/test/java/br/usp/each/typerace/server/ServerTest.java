@@ -36,6 +36,7 @@ class ServerTest {
         ClientHandshake mockHandshake = mock(ClientHandshake.class);
 
         subject.onOpen(mockConnection, mockHandshake);
+        subject.onMessage(mockConnection, "Enviar meu ID");
 
         assertEquals(1, connections.size());
         verify(mockConnection, times(1)).getResourceDescriptor();

@@ -160,6 +160,11 @@ public class ClientMain {
         console.print();
     }
 
+    /**
+     * getUserChoice recebe o escolha no menu
+     * principal
+     */
+
     public static Choice getUserChoice(Scanner scan) {
 
         int userInput;
@@ -178,8 +183,7 @@ public class ClientMain {
     /**
      * A funcao startGame cria uma conexao com o server.
      *
-     * O ID do usuario e a primeira mensagem enviada
-     * e enquanto a conxexao estiver aberta a funcao vai
+     * Enquanto a conxexao estiver aberta a funcao vai
      * receber a entrada do usuario e enviar para o server.
      *
      * @param server server usado para conexao
@@ -202,7 +206,7 @@ public class ClientMain {
     }
 
     /**
-     * Usado para receber o nome do server ou nome
+     * getUserInput recebe o nome do server ou nome
      * do usuario. E caso o usuario nao escreva nada
      * o valor padrao e utilizado
      *

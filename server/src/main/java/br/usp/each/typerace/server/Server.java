@@ -27,22 +27,21 @@ public class Server extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         System.out.println("Nova conexão recebida...");
-        String user = conn.getResourceDescriptor().substring(1);
-        if (verifyUser(conn, user)) {
-            addUser(conn, user);
-            System.out.println("Conexão feita com sucesso!");
-        }
     }
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        conn.send(String.format("Um erro ocorreu: %s\n", ex.toString()));
+        if (conn != null) {
+            System.out.println(String.format("Um erro ocorreu com a conexão: %s\n", getUserId(conn).get()));
+        }
+        ex.printStackTrace();
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         Optional<String> userId = getUserId(conn);
         if (userId.isPresent()) {
+            System.out.printf("%s se desconectou%n", userId.get());
             if (typeRace.isRunning()) {
                 typeRace.finishPlayer(typeRace.getPlayer(userId.get()));
             }
@@ -55,9 +54,9 @@ public class Server extends WebSocketServer {
     }
 
     /**
-     * Quando uma mensagem e recebida, caso seja uma nova
-     * conexao, a funcao adiciona o jogador no hashmap
-     * connections.
+     * onMessage quando uma mensagem e recebida, caso seja
+     *  uma nova conexao, a funcao adiciona o jogador no
+     * hashmap connections.
      *
      * Se o jogador ja estiver cadastrado a entrada do jogador
      * e interpretada como uma escolha do menu
@@ -72,9 +71,12 @@ public class Server extends WebSocketServer {
         if (message.length() == 0) return;
 
         Optional<String> optionalUser = this.getUserId(conn);
-        if (optionalUser.isEmpty()) return;
-        String user = optionalUser.get();
+        if (optionalUser.isEmpty()) {
+            verifyUser(conn);
+            return;
+        }
 
+        String user = optionalUser.get();
         if (this.typeRace.isRunning()) {
             inputToTypeRace(conn, user, message);
             return;
@@ -99,7 +101,7 @@ public class Server extends WebSocketServer {
                 break;
 
             case QUIT:
-                System.out.println(message);
+                System.out.printf("%s saiu do jogo com sucesso!\n", user);
                 removeUser(conn);
                 break;
 
@@ -108,6 +110,13 @@ public class Server extends WebSocketServer {
         }
     }
 
+    public void verifyUser(WebSocket conn) {
+        String user = conn.getResourceDescriptor();
+        if (validUser(conn, user)) {
+            addUser(conn, user);
+            System.out.println("Conexão feita com sucesso!");
+        }
+    }
 
     /**
      * inputToTypeRace logica do jogo typeRace:
@@ -144,11 +153,19 @@ public class Server extends WebSocketServer {
     }
 
     /**
-     * verifyUser Verifica se o usuario viola alguma politica
+     * validUser Verifica se o usuario viola alguma politica
      * do jogo
      */
 
-    public boolean verifyUser(WebSocket conn, String clientId) {
+    public boolean validUser(WebSocket conn, String clientId) {
+        if (clientId.length() <= 1) {
+            conn.send("Este ID está vazio!\n" +
+                    "Por escolha um ID.\n");
+            conn.close(1008, "Sem Id"); // Policy Violation (no ID)
+            return false;
+        }
+
+        clientId = clientId.substring(1);
         if (clientId.length() > 18) {
             conn.send("Este ID é muito grande! (Limite de 18 caracteres)\n" +
                     "Por gentileza escolha outro ID.\n");

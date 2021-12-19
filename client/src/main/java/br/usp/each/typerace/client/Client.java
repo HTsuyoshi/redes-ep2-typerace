@@ -23,6 +23,7 @@ public class Client extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         console.appendEffect("Uma nova conexão foi criada!!\n", Color.GREEN, Mode.NONE);
+        console.appendEffect("Digite alguma mensagem para continuar\n", Color.GREEN, Mode.NONE);
         console.print();
     }
 
