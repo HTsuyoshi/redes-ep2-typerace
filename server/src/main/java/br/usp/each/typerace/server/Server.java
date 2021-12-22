@@ -91,8 +91,11 @@ public class Server extends WebSocketServer {
                 break;
 
             case SET_MAX_SCORE:
-                if (message.length() < 3) return;
-                setMaxScore(message.substring(2).strip(), conn, user);
+                if (message.length() >= 3) {
+                    setMaxScore(message.substring(2).strip(), conn, user);
+                } else {
+                    conn.send("Você não colocou um argumento!");
+                }
                 break;
 
             case QUIT:
@@ -127,7 +130,7 @@ public class Server extends WebSocketServer {
 
     public void inputToTypeRace(WebSocket conn, String user, String message) {
         if (typeRace.getPlayersPlaying() == 0)  {
-            typeRace.setRunning(false);
+            typeRace.finish();
             broadcast(typeRace.scoreboard());
             return;
         }
@@ -142,7 +145,8 @@ public class Server extends WebSocketServer {
 
         if (!isPlaying(user)) {
             conn.send("Parabéns, você terminou sua lista de palavras\n" +
-                    "Por favor espere os outros jogadores terminarem");
+                    "Por favor espere os outros jogadores terminarem\n" +
+                    "Se todos os jogadores terminaram pressione h\n");
         } else {
             conn.send(typeRace.getWord(user));
         }

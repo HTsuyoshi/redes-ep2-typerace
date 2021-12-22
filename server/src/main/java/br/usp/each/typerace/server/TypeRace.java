@@ -18,7 +18,7 @@ public class TypeRace {
     private int playersPlaying;
     private int maxScore;
     private final int wordListSize;
-    private final Map<String, Player> players;
+    private Map<String, Player> players;
     private String[] wordList;
 
     TypeRace() {
@@ -41,8 +41,20 @@ public class TypeRace {
 
     public void init(Set<String> playerList) {
         this.setRunning(true);
+
         this.setPlayers(playerList);
         this.startTimer();
+    }
+
+    /**
+     * finish termina o jogo, tira os jogadores antigos,
+     * cria uma nova lista para os proximos jogadores
+     */
+
+    public void finish() {
+        resetPlayers();
+        this.setRunning(false);
+        this.generateList();
     }
 
     /**
@@ -115,9 +127,9 @@ public class TypeRace {
         PriorityQueue<Player> orderedList = new PriorityQueue<>(new PlayerComparator());
         StringBuilder table = new StringBuilder();
         table.append("                   PONTUAÇÃO FINAL\n");
-        table.append(" _________________________________________________________\n");
-        table.append("|_rank_|_name_______________|_palavra/sec_|_score_|_wrong_|\n");
-        //            |_4.___|_Ricardo____________|_1,23________|_80____|_20____|
+        table.append(" ______________________________________________________\n");
+        table.append("|_rank_|_name_______________|_word/sec_|_score_|_wrong_|\n");
+        //            |_4.___|_Ricardo____________|_1,23_____|_80____|_20____|
 
         orderedList.addAll(players.values());
 
@@ -129,7 +141,7 @@ public class TypeRace {
                 duracaoPartida = duracaoPlayer;
             }
 
-            table.append(String.format("| %-4d | %-18s | %-12.2f | %-6d | %-6d |\n",
+            table.append(String.format("| %-4d | %-18s | %-8.2f | %-5d | %-5d |\n",
                     i++,
                     player.getUser(),
                     player.getVelocity(),
@@ -151,6 +163,11 @@ public class TypeRace {
             players.put(playerName, new Player(playerName));
         }
         setPlayersPlaying(playerList.size());
+    }
+
+    public void resetPlayers() {
+        players = new HashMap<>();
+        setPlayersPlaying(0);
     }
 
     /**

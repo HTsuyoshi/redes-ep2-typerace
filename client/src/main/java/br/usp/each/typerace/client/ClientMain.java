@@ -102,7 +102,7 @@ public class ClientMain {
 
     /**
      * setLogger serve para o usuario verificar
-     * o terminal dele tem suporte para caracteres
+     * se o terminal tem suporte para caracteres
      * de escape ANSI
      */
 
@@ -118,11 +118,11 @@ public class ClientMain {
     }
 
     /**
-     * Imprime a interface principal do usuario
+     * printMenu a interface principal do usuario
      *
      * @param server server que o usuario vai se conectar
      * @param clientId Id que o usuario vai utilizar
-     * @param userChoice mostrar erro
+     * @param userChoice mostrar erro caso escolha seja invalida
      */
 
     public static void printMenu(Choice userChoice, String server, String clientId) {
@@ -181,7 +181,7 @@ public class ClientMain {
     }
 
     /**
-     * A funcao startGame cria uma conexao com o server.
+     * startGame cria uma conexao com o server.
      *
      * Enquanto a conxexao estiver aberta a funcao vai
      * receber a entrada do usuario e enviar para o server.

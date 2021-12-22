@@ -14,12 +14,16 @@ Repositório para o EP2 de Redes de Computadores, EACH-USP - 2021/2
 ### Rodando
 Para rodar o servidor na porta padrão:
 ```sh
-./gradlew server:run --console=plain
+./gradlew server:run
 ```
 
 Para rodar o servidor em alguma porta específica:
 ```sh
-./gradlew server:run --console=plain --args='123'
+./gradlew server:run --args='123'
+```
+Para rodar o jogo:
+```sh
+./gradlew client:run
 ```
 
 Para ter uma melhor experiência ao jogar o jogo recomendamos rodar :D :

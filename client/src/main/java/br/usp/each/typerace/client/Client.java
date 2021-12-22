@@ -35,6 +35,11 @@ public class Client extends WebSocketClient {
         console.print();
     }
 
+    /**
+     * onClose caso o codigo seja 1000 (success)
+     * imprime em verde, caso o contrario imprime em vermelho
+     */
+
     @Override
     public void onClose(int code, String reason, boolean remote) {
         console.clear();

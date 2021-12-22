@@ -22,8 +22,13 @@ public class Player {
         this.time = 0;
     }
 
-    public void compareWord(String correct, String word) {
-        if (correct.equals(word)) addScore();
+    /**
+     * compareWord compara a palavra, contabiliza o ponto
+     * e avanca para a proxima palavra da lista
+     */
+
+    public void compareWord(String correct, String userInput) {
+        if (correct.equals(userInput)) addScore();
         else addWrong();
 
         addListIndex();
@@ -32,10 +37,6 @@ public class Player {
     public void finish(long startTime) {
         this.time = System.nanoTime() - startTime;
         setPlaying(false);
-    }
-
-    public void resetListIndex() {
-        this.listIndex = 0;
     }
 
     /* Getter and Setters */
@@ -64,6 +65,10 @@ public class Player {
         this.listIndex++;
     }
 
+    public void resetListIndex() {
+        this.listIndex = 0;
+    }
+
     public boolean isPlaying() {
         return this.playing;
     }
@@ -80,12 +85,11 @@ public class Player {
         return this.user;
     }
 
-    public float getTimeSeconds() {
-        return  ((float) getTime() / ((long)(1_000_000_000.0)));
-    }
-
     public long getTime() {
         return this.time;
     }
 
+    public float getTimeSeconds() {
+        return  ((float) getTime() / ((long)(1_000_000_000.0)));
+    }
 }
