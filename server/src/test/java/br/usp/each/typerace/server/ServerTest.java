@@ -21,6 +21,9 @@ import static org.mockito.Mockito.*;
 class ServerTest {
 
     @Mock
+    private String username;
+
+    @Mock
     private Map<String, WebSocket> connections;
 
     @Mock
@@ -34,11 +37,13 @@ class ServerTest {
 
     @BeforeEach
     public void setup() {
+        username = "clientId";
         connections = new HashMap<>();
         subject = new Server(8080, this.connections);
         typeRace = new TypeRace();
 
         mockConnection = Mockito.mock(WebSocket.class);
+        Mockito.when(mockConnection.getResourceDescriptor()).thenReturn("/" + username);
     }
 
     @Test
@@ -46,7 +51,6 @@ class ServerTest {
         ClientHandshake mockHandshake = mock(ClientHandshake.class);
 
 
-        Mockito.when(mockConnection.getResourceDescriptor()).thenReturn("/clientId");
         subject.onOpen(mockConnection, mockHandshake);
 
         assertEquals(1, connections.size());
@@ -55,7 +59,7 @@ class ServerTest {
 
     @Test
     public void deveRemoverConexoesFechadas() {
-        connections.put("test", mockConnection);
+        connections.put(username, mockConnection);
 
         subject.onClose(mockConnection, 0, "Algum motivo", true);
 
