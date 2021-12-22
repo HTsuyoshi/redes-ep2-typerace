@@ -78,6 +78,7 @@ public class Player {
     }
 
     public float getVelocity() {
+        if (getTimeSeconds() == 0) return 0;
         return ((score + wrong) / getTimeSeconds());
     }
 
