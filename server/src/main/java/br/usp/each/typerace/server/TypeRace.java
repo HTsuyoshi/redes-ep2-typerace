@@ -129,7 +129,7 @@ public class TypeRace {
                 duracaoPartida = duracaoPlayer;
             }
 
-            table.append(String.format("| %-4d.| %-19s| %-12.2f| %-6d| %-6d|\n",
+            table.append(String.format("| %-4d | %-18s | %-12.2f | %-6d | %-6d |\n",
                     i++,
                     player.getUser(),
                     player.getVelocity(),

@@ -7,7 +7,6 @@ import org.java_websocket.server.WebSocketServer;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class Server extends WebSocketServer {
 
@@ -17,36 +16,36 @@ public class Server extends WebSocketServer {
     public Server(int port, Map<String, WebSocket> connections) {
         super(new InetSocketAddress(port));
         this.connections = connections;
+        this.typeRace = new TypeRace();
     }
 
     @Override
     public void onStart() {
-        this.typeRace = new TypeRace();
+        System.out.println("Servidor iniciado!");
     }
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         System.out.println("Nova conexão recebida...");
+        verifyUser(conn);
     }
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
         if (conn != null) {
-            System.out.println(String.format("Um erro ocorreu com a conexão: %s\n", getUserId(conn).get()));
+            System.out.printf("Um erro ocorreu com a conexão: %s%n%n", getUserId(conn));
         }
         ex.printStackTrace();
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        Optional<String> userId = getUserId(conn);
-        if (userId.isPresent()) {
-            System.out.printf("%s se desconectou%n", userId.get());
-            if (typeRace.isRunning()) {
-                typeRace.finishPlayer(typeRace.getPlayer(userId.get()));
-            }
-            this.connections.remove(conn);
+        String user = getUserId(conn);
+        System.out.printf("%s se desconectou%n", user);
+        if (typeRace.isRunning()) {
+            typeRace.finishPlayer(typeRace.getPlayer(user));
         }
+        connections.remove(user);
 
         if (!conn.isClosed()) {
             conn.close(code, reason);
@@ -69,15 +68,11 @@ public class Server extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         if (message.length() == 0) return;
+        if (conn.getResourceDescriptor().equals("/")) return;
 
-        Optional<String> optionalUser = this.getUserId(conn);
-        if (optionalUser.isEmpty()) {
-            verifyUser(conn);
-            return;
-        }
+        String user = getUserId(conn);
 
-        String user = optionalUser.get();
-        if (this.typeRace.isRunning()) {
+        if (typeRace.isRunning()) {
             inputToTypeRace(conn, user, message);
             return;
         }
@@ -85,19 +80,19 @@ public class Server extends WebSocketServer {
         Choice userChoice = getChoice(message.charAt(0));
         switch (userChoice) {
             case HELP:
-                this.help(conn);
+                help(conn);
                 break;
 
             case START_GAME:
                 broadcast(String.format("%s começou o jogo\n", user));
                 broadcast("Gerando lista de palavras\n");
-                typeRace.init(this.connections.keySet());
+                typeRace.init(connections.keySet());
                 broadcast(typeRace.getWord(user));
                 break;
 
             case SET_MAX_SCORE:
                 if (message.length() < 3) return;
-                this.setMaxScore(message.substring(2).strip(), conn, user);
+                setMaxScore(message.substring(2).strip(), conn, user);
                 break;
 
             case QUIT:
@@ -113,8 +108,9 @@ public class Server extends WebSocketServer {
     public void verifyUser(WebSocket conn) {
         String user = conn.getResourceDescriptor();
         if (validUser(conn, user)) {
+            user = user.substring(1);
             addUser(conn, user);
-            System.out.println("Conexão feita com sucesso!");
+            System.out.printf("Conexão com %s feita com sucesso!%n", user);
         }
     }
 
@@ -137,7 +133,7 @@ public class Server extends WebSocketServer {
         }
 
         if (!isInGame(user)) return;
-        if (isPlaying(user)) this.typeRace.verifyAnswer(user, message);
+        if (isPlaying(user)) typeRace.verifyAnswer(user, message);
 
         if (!typeRace.isRunning())  {
             broadcast(typeRace.scoreboard());
@@ -148,7 +144,7 @@ public class Server extends WebSocketServer {
             conn.send("Parabéns, você terminou sua lista de palavras\n" +
                     "Por favor espere os outros jogadores terminarem");
         } else {
-            conn.send(this.typeRace.getWord(user));
+            conn.send(typeRace.getWord(user));
         }
     }
 
@@ -227,15 +223,15 @@ public class Server extends WebSocketServer {
     }
 
     public boolean isInGame(String user) {
-        return (this.typeRace.getPlayer(user) != null);
+        return (typeRace.getPlayer(user) != null);
     }
 
     public void removeUser(WebSocket conn) {
-        Optional<String> userId = getUserId(conn);
-        if (userId.isEmpty()) return;
+        String user = getUserId(conn);
+        if (user.isEmpty()) return;
 
-        conn.send(String.format("Obrigado por jogar! %s", userId.get()));
-        connections.remove(userId.get(), conn);
+        conn.send(String.format("Obrigado por jogar! %s", user));
+        connections.remove(user, conn);
         conn.close(1000, "O usuário quis sair do jogo");
     }
 
@@ -255,15 +251,11 @@ public class Server extends WebSocketServer {
     }
 
     public boolean isPlaying(String user) {
-        return this.typeRace.getPlayer(user).isPlaying();
+        return typeRace.getPlayer(user).isPlaying();
     }
 
-    public Optional<String> getUserId(WebSocket conn) {
-        return connections.entrySet()
-                .stream()
-                .filter(entry -> entry.getValue().equals(conn))
-                .map(Map.Entry::getKey)
-                .findFirst();
+    public String getUserId(WebSocket conn) {
+        return conn.getResourceDescriptor().substring(1);
     }
 
     public Choice getChoice(char message) {
