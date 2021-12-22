@@ -70,7 +70,7 @@ class ServerTest {
     }
 
     @Test
-    public void recusarIdDuplicado() {
+    public void deveRecusarIdDuplicado() {
         ClientHandshake mockHandshake = mock(ClientHandshake.class);
 
         WebSocket repeatedMockConnection = Mockito.mock(WebSocket.class);
@@ -80,25 +80,29 @@ class ServerTest {
         subject.onOpen(repeatedMockConnection, mockHandshake);
 
         assertEquals(1, connections.size());
+
         verify(mockConnection, times(1)).getResourceDescriptor();
+        verify(repeatedMockConnection, times(1)).getResourceDescriptor();
     }
 
     @Test
-    public void recusarIdLongo() {
+    public void deveRecusarIdLongo() {
         ClientHandshake mockHandshake = mock(ClientHandshake.class);
 
         WebSocket repeatedMockConnection = Mockito.mock(WebSocket.class);
-        Mockito.when(repeatedMockConnection.getResourceDescriptor()).thenReturn("/" + "euTenhoUmIDMuitoLongoAAAAAAAAAAAAAAAAAAAAA");
+        Mockito.when(repeatedMockConnection.getResourceDescriptor()).thenReturn("/" + "euTenhoUmIDMuitoLongoAAAAASUBLIME_DARKNESS_FEEVAAAAAAAAAAAAAAAA");
 
         subject.onOpen(mockConnection, mockHandshake);
         subject.onOpen(repeatedMockConnection, mockHandshake);
 
         assertEquals(1, connections.size());
+
         verify(mockConnection, times(1)).getResourceDescriptor();
+        verify(repeatedMockConnection, times(1)).getResourceDescriptor();
     }
 
     @Test
-    public void recusarIdVazio() {
+    public void deveRecusarIdVazio() {
         ClientHandshake mockHandshake = mock(ClientHandshake.class);
 
         WebSocket repeatedMockConnection = Mockito.mock(WebSocket.class);
@@ -109,5 +113,17 @@ class ServerTest {
 
         assertEquals(1, connections.size());
         verify(mockConnection, times(1)).getResourceDescriptor();
+        verify(repeatedMockConnection, times(1)).getResourceDescriptor();
+    }
+
+    @Test
+    public void deveRemoverOJogadorPeloMenu() {
+        ClientHandshake mockHandshake = mock(ClientHandshake.class);
+
+        subject.onOpen(mockConnection, mockHandshake);
+        subject.onMessage(mockConnection, "s");
+
+        assertEquals(0, connections.size());
+        verify(mockConnection, atLeast(2)).getResourceDescriptor();
     }
 }

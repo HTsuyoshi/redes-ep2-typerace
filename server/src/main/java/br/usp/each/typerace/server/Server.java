@@ -87,7 +87,7 @@ public class Server extends WebSocketServer {
                 broadcast(String.format("%s começou o jogo\n", user));
                 broadcast("Gerando lista de palavras\n");
                 typeRace.init(connections.keySet());
-                broadcast(typeRace.getWord(user));
+                broadcast(typeRace.getMessage(user));
                 break;
 
             case SET_MAX_SCORE:
@@ -148,7 +148,7 @@ public class Server extends WebSocketServer {
                     "Por favor espere os outros jogadores terminarem\n" +
                     "Se todos os jogadores terminaram pressione h\n");
         } else {
-            conn.send(typeRace.getWord(user));
+            conn.send(typeRace.getMessage(user));
         }
     }
 

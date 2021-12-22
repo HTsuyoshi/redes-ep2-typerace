@@ -19,6 +19,7 @@ public class TypeRace {
     private int maxScore;
     private final int wordListSize;
     private Map<String, Player> players;
+    PriorityQueue<Player> ranking;
     private String[] wordList;
 
     TypeRace() {
@@ -28,6 +29,7 @@ public class TypeRace {
         this.maxScore = 10;
         this.wordListSize = 500;
         this.players = new HashMap<>();
+        this.ranking = new PriorityQueue<>(new PlayerComparator());
         this.generateList();
     }
 
@@ -52,7 +54,7 @@ public class TypeRace {
      */
 
     public void finish() {
-        resetPlayers();
+        this.resetPlayers();
         this.setRunning(false);
         this.generateList();
     }
@@ -124,18 +126,16 @@ public class TypeRace {
 
     public String scoreboard() {
 
-        PriorityQueue<Player> orderedList = new PriorityQueue<>(new PlayerComparator());
         StringBuilder table = new StringBuilder();
         table.append("                   PONTUAÇÃO FINAL\n");
         table.append(" ______________________________________________________\n");
         table.append("|_rank_|_name_______________|_word/sec_|_score_|_wrong_|\n");
         //            |_4.___|_Ricardo____________|_1,23_____|_80____|_20____|
 
-        orderedList.addAll(players.values());
 
         int i = 1;
         float duracaoPartida = 0;
-        for(Player player : orderedList) {
+        for(Player player : getRanking()) {
             float duracaoPlayer = player.getTimeSeconds();
             if (duracaoPlayer > duracaoPartida) {
                 duracaoPartida = duracaoPlayer;
@@ -163,11 +163,22 @@ public class TypeRace {
             players.put(playerName, new Player(playerName));
         }
         setPlayersPlaying(playerList.size());
+        ranking.addAll(players.values());
     }
 
     public void resetPlayers() {
-        players = new HashMap<>();
+        this.players = new HashMap<>();
+        this.ranking = new PriorityQueue<>(new PlayerComparator());
         setPlayersPlaying(0);
+    }
+
+    public String getMessage(String user) {
+        Player player = players.get(user);
+        return String.format("Acertos: %4d/%d%nErros:   %4d%nPalavra: %s",
+                player.getScore(),
+                getMaxScore(),
+                player.getWrong(),
+                getWord(player));
     }
 
     /**
@@ -178,13 +189,8 @@ public class TypeRace {
      *             seus atributos
      */
 
-    public String getWord(String user) {
-        Player player = players.get(user);
-        return String.format("Acertos: %4d/%d%nErros:   %4d%nPalavra: %s",
-                player.getScore(),
-                getMaxScore(),
-                player.getWrong(),
-                wordList[player.getListIndex()]);
+    public String getWord(Player player) {
+        return wordList[player.getListIndex()];
     }
 
     public boolean isRunning() { return this.running; }
@@ -215,6 +221,10 @@ public class TypeRace {
 
     public int getPlayersPlaying() {
         return this.playersPlaying;
+    }
+
+    public PriorityQueue<Player> getRanking() {
+        return this.ranking;
     }
 
     public void startTimer() {
