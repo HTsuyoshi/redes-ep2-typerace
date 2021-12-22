@@ -19,7 +19,6 @@ public class TypeRace {
     private int maxScore;
     private final int wordListSize;
     private Map<String, Player> players;
-    PriorityQueue<Player> ranking;
     private String[] wordList;
 
     TypeRace() {
@@ -29,7 +28,6 @@ public class TypeRace {
         this.maxScore = 10;
         this.wordListSize = 500;
         this.players = new HashMap<>();
-        this.ranking = new PriorityQueue<>(new PlayerComparator());
         this.generateList();
     }
 
@@ -44,6 +42,7 @@ public class TypeRace {
     public void init(Set<String> playerList) {
         this.setRunning(true);
 
+        this.resetPlayers();
         this.setPlayers(playerList);
         this.startTimer();
     }
@@ -54,7 +53,6 @@ public class TypeRace {
      */
 
     public void finish() {
-        this.resetPlayers();
         this.setRunning(false);
         this.generateList();
     }
@@ -163,12 +161,10 @@ public class TypeRace {
             players.put(playerName, new Player(playerName));
         }
         setPlayersPlaying(playerList.size());
-        ranking.addAll(players.values());
     }
 
     public void resetPlayers() {
         this.players = new HashMap<>();
-        this.ranking = new PriorityQueue<>(new PlayerComparator());
         setPlayersPlaying(0);
     }
 
@@ -184,9 +180,6 @@ public class TypeRace {
     /**
      * getWord devolve a palavra, acertos e erros
      * do usuario especificado
-     *
-     * @param user especifica o usuario para pegar
-     *             seus atributos
      */
 
     public String getWord(Player player) {
@@ -224,7 +217,10 @@ public class TypeRace {
     }
 
     public PriorityQueue<Player> getRanking() {
-        return this.ranking;
+        PriorityQueue<Player> ranking;
+        ranking = new PriorityQueue<>(new PlayerComparator());
+        ranking.addAll(players.values());
+        return ranking;
     }
 
     public void startTimer() {

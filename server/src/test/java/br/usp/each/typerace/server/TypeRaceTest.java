@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,13 +83,28 @@ class TypeRaceTest {
     }
 
     @Test
-    public void deveOrdenarCorretamenteORanking() {
+    public void deveOrdenarCorretamenteORankingPorPontos() {
+        typeRace.init(players.keySet());
+
+        typeRace.verifyAnswer(player1.getUser(), "PALAVRAERRADAAAAAAAA1");
+        typeRace.verifyAnswer(player2.getUser(), typeRace.getWord(player1));
+
+        PriorityQueue<Player> ranking = typeRace.getRanking();
+        assertEquals(player2.getUser(), ranking.poll().getUser());
+        assertEquals(player1.getUser(), ranking.poll().getUser());
+    }
+
+    @Test
+    public void deveOrdenarCorretamenteORankingPeloTempo() {
         typeRace.init(players.keySet());
 
         typeRace.verifyAnswer(player1.getUser(), typeRace.getWord(player1));
-        typeRace.verifyAnswer(player2.getUser(), "PALAVRAERRADAAAAAAAA1");
+        typeRace.verifyAnswer(player2.getUser(), typeRace.getWord(player2));
+        typeRace.finishPlayer(player1);
+        typeRace.finishPlayer(player2);
 
-        assertEquals(player1.getUser(), typeRace.getRanking().poll().getUser());
-        assertEquals(player2.getUser(), typeRace.getRanking().poll().getUser());
+        PriorityQueue<Player> ranking = typeRace.getRanking();
+        assertEquals(player1.getUser(), ranking.poll().getUser());
+        assertEquals(player2.getUser(), ranking.poll().getUser());
     }
 }
