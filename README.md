@@ -35,6 +35,16 @@ Para ter uma melhor experiência ao jogar o jogo recomendamos rodar :D :
 
 <img src="./assets/preview.gif" width="480" />
 
+### Regras
+
+Após iniciar o cliente o usuário poderá digitar um servidor para se conectar (Caso não coloque nada ele irá definir `ws://localhost:8080`) e um ID (Caso não coloque nada ele irá definir `clientId`).
+
+Depois que o server e o ID forem definidos o usuário irá para o lobby do server podendo escolher em começar o jogo, escolher o número de palavras necessárias para vencer e sair do jogo.
+
+Quando o jogo começar o jogador irá escrever as palavras que forem enviadas para eles.
+
+Assim que a partica acabar o scoreboard será mostrado.
+
 ### Lista de palavras
 
 A lista de palavras é feito usando como base uma lista com as palavras do roteiro do filme Shrek 2 com palavras únicas e acima de 3 caracteres
