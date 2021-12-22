@@ -28,7 +28,6 @@ public class TypeRace {
         this.maxScore = 10;
         this.wordListSize = 500;
         this.players = new HashMap<>();
-        this.generateList();
     }
 
     /**
@@ -41,7 +40,7 @@ public class TypeRace {
 
     public void init(Set<String> playerList) {
         this.setRunning(true);
-
+        this.generateList();
         this.resetPlayers();
         this.setPlayers(playerList);
         this.startTimer();
@@ -126,25 +125,28 @@ public class TypeRace {
 
         StringBuilder table = new StringBuilder();
         table.append("                   PONTUAÇÃO FINAL\n");
-        table.append(" ______________________________________________________\n");
-        table.append("|_rank_|_name_______________|_word/sec_|_score_|_wrong_|\n");
-        //            |_4.___|_Ricardo____________|_1,23_____|_80____|_20____|
+        table.append(" ___________________________________________________________________\n");
+        table.append("|_rank_|_name_______________|_word/sec_|_score_|_wrong_|_time_(sec)_|\n");
+        //            |_4.___|_Ricardo____________|_1,23_____|_80____|_20____|____________|
 
 
         int i = 1;
         float duracaoPartida = 0;
-        for(Player player : getRanking()) {
+        PriorityQueue<Player> orderedPlayer = getRanking();
+        while (!orderedPlayer.isEmpty()) {
+            Player player = orderedPlayer.poll();
             float duracaoPlayer = player.getTimeSeconds();
             if (duracaoPlayer > duracaoPartida) {
                 duracaoPartida = duracaoPlayer;
             }
 
-            table.append(String.format("| %-4d | %-18s | %-8.2f | %-5d | %-5d |\n",
+            table.append(String.format("| %-4d | %-18s | %-8.2f | %-5d | %-5d | %-10.1f |\n",
                     i++,
                     player.getUser(),
                     player.getVelocity(),
                     player.getScore(),
-                    player.getWrong())
+                    player.getWrong(),
+                    duracaoPlayer)
                     .replace(" ", "_"));
         }
 
@@ -218,8 +220,10 @@ public class TypeRace {
 
     public PriorityQueue<Player> getRanking() {
         PriorityQueue<Player> ranking;
-        ranking = new PriorityQueue<>(new PlayerComparator());
-        ranking.addAll(players.values());
+        ranking = new PriorityQueue<Player>(new PlayerComparator());
+        for (Player player : players.values()) {
+            ranking.add(player);
+        }
         return ranking;
     }
 
@@ -238,8 +242,9 @@ class PlayerComparator implements Comparator<Player> {
     public int compare(Player player1, Player player2) {
         if(player1.getScore() > player2.getScore()) return -1;
         if(player1.getScore() < player2.getScore()) return 1;
-
-        return Long.compare(player1.getTime(), player2.getTime());
+        if(player1.getTime() > player2.getTime()) return 1;
+        if(player1.getTime() < player2.getTime()) return -1;
+        return 0;
     }
 }
 
